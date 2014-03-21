@@ -1,7 +1,7 @@
 JSONToolView
 ============
 
-Cross platform JSON viewer and editor.
+Cross platform JSON viewer and editor.  
 Prealpha.
 
 
