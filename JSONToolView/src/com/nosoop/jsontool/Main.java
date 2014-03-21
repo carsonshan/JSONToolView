@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -27,18 +28,18 @@ public class Main extends javax.swing.JFrame {
     Object[][] dataTable;
 
     /**
-     * Creates new form NewJFrame
+     * Creates the JFrame form.
      */
     public Main() {
         jsonRoot = new DefaultMutableTreeNode();
-        
+
         try {
             jsonRoot.setUserObject(new JSONReference(String.format("root: no file"), new JSONObject()));
         } catch (JSONException e) {
         }
-        
-        dataTable = new Object[][] {
-            { null, null, null }
+
+        dataTable = new Object[][]{
+            {null, null, null}
         };
 
         initComponents();
@@ -46,6 +47,12 @@ public class Main extends javax.swing.JFrame {
         FILE_DIALOG = new JFileChooser();
     }
 
+    /**
+     * Loads a file and attempts to parse it as JSON.
+     *
+     * @param jsonFile The file to load. Assumed JSON; a message will be
+     * displayed with the exception message if a JSONException is caught.
+     */
     void loadFile(File jsonFile) {
         try {
             JSONObject jsonData = new JSONObject(new JSONTokener(new FileInputStream(jsonFile)));
@@ -55,16 +62,26 @@ public class Main extends javax.swing.JFrame {
             jsonRoot.setUserObject(new JSONReference(String.format("root: %s", jsonFile.getName()), jsonData));
             ((DefaultTreeModel) jsonTree.getModel()).reload();
 
-            // Build the JSON tree again and expand root (?).
+            // Build the JSON tree again, expand root, select root node.
             buildJSONTree(jsonRoot, jsonData);
             jsonTree.expandRow(0);
+            jsonTree.setSelectionPath(jsonTree.getPathForRow(0));
         } catch (JSONException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.getMessage());
         } catch (FileNotFoundException e) {
             // Well, you're boned.
         }
     }
 
+    /**
+     * Recursively builds a tree of DefaultMutableTreeNodes containing
+     * JSONReference values using the given JSONObject and
+     * DefaultMutableTreeNode.
+     *
+     * @param treeNode Tree node to add JSONObject values to.
+     * @param jsonData The JSONObject with values to add.
+     * @throws JSONException
+     */
     void buildJSONTree(DefaultMutableTreeNode treeNode, JSONObject jsonData)
             throws JSONException {
         for (String key : (Set<String>) jsonData.keySet()) {
@@ -80,16 +97,21 @@ public class Main extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Builds a table of key / type / value objects for a selected JSONReference
+     * instance.
+     *
+     * @param ref The JSONReference instance to build a table from.
+     */
     void buildTableElements(JSONReference ref) {
         DefaultTableModel jsonTable = ((DefaultTableModel) jsonObjectTable.getModel());
-        
+
         for (int i = jsonTable.getRowCount() - 1; i >= 0; i--) {
             jsonTable.removeRow(i);
         }
-        
+
         for (Map.Entry keyValues : ref.keyValues.entrySet()) {
-            System.out.printf("%s %s%n", keyValues.getKey(), keyValues.getValue());
-            jsonTable.addRow(new Object[] { keyValues.getKey(), "", keyValues.getValue() });
+            jsonTable.addRow(new Object[]{keyValues.getKey(), keyValues.getValue().getClass().getSimpleName(), keyValues.getValue()});
         }
     }
 
@@ -102,19 +124,20 @@ public class Main extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jSplitPane1 = new javax.swing.JSplitPane();
+        jsonMainPane = new javax.swing.JSplitPane();
         jsonTreeScrollPane = new javax.swing.JScrollPane();
         jsonTree = new javax.swing.JTree(jsonRoot);
         jsonTableScrollPane = new javax.swing.JScrollPane();
         jsonObjectTable = new javax.swing.JTable();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        menuBar = new javax.swing.JMenuBar();
+        menuFile = new javax.swing.JMenu();
+        menuItemOpen = new javax.swing.JMenuItem();
+        menuEdit = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("JSONToolView pre-alpha");
 
-        jSplitPane1.setDividerLocation(192);
+        jsonMainPane.setDividerLocation(192);
 
         jsonTree.setShowsRootHandles(true);
         jsonTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
@@ -124,7 +147,7 @@ public class Main extends javax.swing.JFrame {
         });
         jsonTreeScrollPane.setViewportView(jsonTree);
 
-        jSplitPane1.setLeftComponent(jsonTreeScrollPane);
+        jsonMainPane.setLeftComponent(jsonTreeScrollPane);
 
         jsonObjectTable.setModel(new javax.swing.table.DefaultTableModel(
             dataTable,
@@ -140,46 +163,50 @@ public class Main extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        jsonObjectTable.setColumnSelectionAllowed(true);
         jsonObjectTable.setFillsViewportHeight(true);
         jsonObjectTable.setShowHorizontalLines(false);
         jsonObjectTable.setShowVerticalLines(false);
+        jsonObjectTable.getTableHeader().setReorderingAllowed(false);
         jsonTableScrollPane.setViewportView(jsonObjectTable);
+        jsonObjectTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
-        jSplitPane1.setRightComponent(jsonTableScrollPane);
+        jsonMainPane.setRightComponent(jsonTableScrollPane);
 
-        jMenu1.setText("File");
+        menuFile.setText("File");
 
-        jMenuItem1.setText("Open");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+        menuItemOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        menuItemOpen.setText("Open");
+        menuItemOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+                menuItemOpenActionPerformed(evt);
             }
         });
-        jMenu1.add(jMenuItem1);
+        menuFile.add(menuItemOpen);
 
-        jMenuBar1.add(jMenu1);
+        menuBar.add(menuFile);
 
-        jMenu2.setText("Edit");
-        jMenuBar1.add(jMenu2);
+        menuEdit.setText("Edit");
+        menuBar.add(menuEdit);
 
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(menuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE)
+            .addComponent(jsonMainPane, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1)
+            .addComponent(jsonMainPane)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
     final JFileChooser FILE_DIALOG;
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    private void menuItemOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemOpenActionPerformed
         int fileDialogReturnValue = FILE_DIALOG.showOpenDialog(this);
 
         if (fileDialogReturnValue == JFileChooser.APPROVE_OPTION) {
@@ -187,7 +214,7 @@ public class Main extends javax.swing.JFrame {
 
             loadFile(file);
         }
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    }//GEN-LAST:event_menuItemOpenActionPerformed
 
     private void jsonTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jsonTreeValueChanged
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) jsonTree.getLastSelectedPathComponent();
@@ -196,10 +223,8 @@ public class Main extends javax.swing.JFrame {
             return;
         }
 
-        if (node.isLeaf()) {
-            JSONReference jsonNode = (JSONReference) node.getUserObject();
-            buildTableElements(jsonNode);
-        }
+        JSONReference jsonNode = (JSONReference) node.getUserObject();
+        buildTableElements(jsonNode);
     }//GEN-LAST:event_jsonTreeValueChanged
 
     /**
@@ -227,14 +252,14 @@ public class Main extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JSplitPane jsonMainPane;
     private javax.swing.JTable jsonObjectTable;
     private javax.swing.JScrollPane jsonTableScrollPane;
     private javax.swing.JTree jsonTree;
     private javax.swing.JScrollPane jsonTreeScrollPane;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu menuEdit;
+    private javax.swing.JMenu menuFile;
+    private javax.swing.JMenuItem menuItemOpen;
     // End of variables declaration//GEN-END:variables
 }
