@@ -10,8 +10,10 @@ import bundled.jsontool.org.json.JSONTokener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Map;
 import java.util.Set;
 import javax.swing.JFileChooser;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
@@ -22,6 +24,7 @@ import javax.swing.tree.DefaultTreeModel;
 public class Main extends javax.swing.JFrame {
 
     DefaultMutableTreeNode jsonRoot;
+    Object[][] dataTable;
 
     /**
      * Creates new form NewJFrame
@@ -29,6 +32,15 @@ public class Main extends javax.swing.JFrame {
     public Main() {
         jsonRoot = new DefaultMutableTreeNode();
         
+        try {
+            jsonRoot.setUserObject(new JSONReference(String.format("root: no file"), new JSONObject()));
+        } catch (JSONException e) {
+        }
+        
+        dataTable = new Object[][] {
+            { null, null, null }
+        };
+
         initComponents();
 
         FILE_DIALOG = new JFileChooser();
@@ -37,12 +49,12 @@ public class Main extends javax.swing.JFrame {
     void loadFile(File jsonFile) {
         try {
             JSONObject jsonData = new JSONObject(new JSONTokener(new FileInputStream(jsonFile)));
-            
+
             // Remove previous JSON object tree and reload GUI.
             jsonRoot.removeAllChildren();
-            jsonRoot.setUserObject(String.format("root: %s", jsonFile.getName()));
+            jsonRoot.setUserObject(new JSONReference(String.format("root: %s", jsonFile.getName()), jsonData));
             ((DefaultTreeModel) jsonTree.getModel()).reload();
-            
+
             // Build the JSON tree again and expand root (?).
             buildJSONTree(jsonRoot, jsonData);
             jsonTree.expandRow(0);
@@ -57,14 +69,27 @@ public class Main extends javax.swing.JFrame {
             throws JSONException {
         for (String key : (Set<String>) jsonData.keySet()) {
             if (jsonData.optJSONObject(key) != null) {
-                JSONReference ref = new JSONReference(key);
-                
+                JSONReference ref = new JSONReference(key, jsonData.getJSONObject(key));
+
                 DefaultMutableTreeNode innerObject =
                         new DefaultMutableTreeNode(ref);
                 buildJSONTree(innerObject, jsonData.getJSONObject(key));
-                
+
                 treeNode.add(innerObject);
             }
+        }
+    }
+
+    void buildTableElements(JSONReference ref) {
+        DefaultTableModel jsonTable = ((DefaultTableModel) jsonObjectTable.getModel());
+        
+        for (int i = jsonTable.getRowCount() - 1; i >= 0; i--) {
+            jsonTable.removeRow(i);
+        }
+        
+        for (Map.Entry keyValues : ref.keyValues.entrySet()) {
+            System.out.printf("%s %s%n", keyValues.getKey(), keyValues.getValue());
+            jsonTable.addRow(new Object[] { keyValues.getKey(), "", keyValues.getValue() });
         }
     }
 
@@ -92,17 +117,17 @@ public class Main extends javax.swing.JFrame {
         jSplitPane1.setDividerLocation(192);
 
         jsonTree.setShowsRootHandles(true);
+        jsonTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                jsonTreeValueChanged(evt);
+            }
+        });
         jsonTreeScrollPane.setViewportView(jsonTree);
 
         jSplitPane1.setLeftComponent(jsonTreeScrollPane);
 
         jsonObjectTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
-            },
+            dataTable,
             new String [] {
                 "Name", "Type", "Value"
             }
@@ -115,6 +140,7 @@ public class Main extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        jsonObjectTable.setFillsViewportHeight(true);
         jsonObjectTable.setShowHorizontalLines(false);
         jsonObjectTable.setShowVerticalLines(false);
         jsonTableScrollPane.setViewportView(jsonObjectTable);
@@ -146,7 +172,7 @@ public class Main extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
+            .addComponent(jSplitPane1)
         );
 
         pack();
@@ -162,6 +188,19 @@ public class Main extends javax.swing.JFrame {
             loadFile(file);
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jsonTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jsonTreeValueChanged
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) jsonTree.getLastSelectedPathComponent();
+
+        if (node == null) {
+            return;
+        }
+
+        if (node.isLeaf()) {
+            JSONReference jsonNode = (JSONReference) node.getUserObject();
+            buildTableElements(jsonNode);
+        }
+    }//GEN-LAST:event_jsonTreeValueChanged
 
     /**
      * @param args the command line arguments
