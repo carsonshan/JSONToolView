@@ -9,19 +9,26 @@ import bundled.jsontool.org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
- * A struct containing a JSONObject's non-JSONObject key/value pairs.
- * (JSONObject values are 
+ * A tree node containing a JSONObject's non-JSONObject key/value pairs.
+ * (JSONObject values are stored as the node's children.)
  * 
  * @author nosoop < nosoop at users.noreply.github.com >
  */
-public class JSONReference {
+public class JSONObjectTreeNode extends DefaultMutableTreeNode {
+    
     String name;
     Map<String, Object> keyValues;
     
-    JSONReference(String name, JSONObject object) throws JSONException {
+    JSONObjectTreeNode(String name, JSONObject object) throws JSONException {
         this.name = name;
+        
+        buildKeyValues(object);
+    }
+    
+    final void buildKeyValues(JSONObject object) throws JSONException {
         keyValues = new HashMap<>();
         
         for (String key : (Set<String>) object.keySet()) {

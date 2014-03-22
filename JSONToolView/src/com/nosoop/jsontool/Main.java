@@ -21,7 +21,6 @@ import java.util.Set;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 /**
@@ -30,19 +29,20 @@ import javax.swing.tree.DefaultTreeModel;
  */
 public class Main extends javax.swing.JFrame {
 
-    DefaultMutableTreeNode jsonRoot;
-    JSONReference workingJSONObject;
+    JSONObjectTreeNode jsonRoot;
+    JSONObjectTreeNode workingJSONObject;
     Object[][] dataTable;
 
     /**
      * Creates the JFrame form.
      */
     public Main() {
-        jsonRoot = new DefaultMutableTreeNode();
+        //jsonRoot = new JSONObjectTreeNode();
 
         try {
-            jsonRoot.setUserObject(new JSONReference(String.format("root: no file"), new JSONObject()));
+            jsonRoot = new JSONObjectTreeNode(String.format("root: no file"), new JSONObject());
         } catch (JSONException e) {
+            throw new Error(e);
         }
 
         dataTable = new Object[][]{};
@@ -50,11 +50,22 @@ public class Main extends javax.swing.JFrame {
         initComponents();
 
         FILE_DIALOG = new JFileChooser() {
+            final String CONFIRM_MESSAGE = "The file exists.  Overwrite?",
+                    CONFIRM_TITLE = "JSONToolView";
+
+            /**
+             * Subclass to add a confirm message.
+             */
             @Override
             public void approveSelection() {
-                File f = getSelectedFile();
-                if (f.exists() && getDialogType() == SAVE_DIALOG) {
-                    int result = JOptionPane.showConfirmDialog(this, "The file exists, overwrite?", "Existing file", JOptionPane.YES_NO_OPTION);
+                File file = getSelectedFile();
+                if (file.exists()
+                        && this.getDialogType() == JFileChooser.SAVE_DIALOG) {
+
+                    int result = JOptionPane.showConfirmDialog(this,
+                            CONFIRM_MESSAGE, CONFIRM_TITLE,
+                            JOptionPane.YES_NO_OPTION);
+
                     switch (result) {
                         case JOptionPane.YES_OPTION:
                             super.approveSelection();
@@ -64,11 +75,12 @@ public class Main extends javax.swing.JFrame {
                             return;
                         case JOptionPane.CLOSED_OPTION:
                             return;
+                        default:
+                            return;
                     }
-                    return;
                 }
-                
-                // If not the save dialog.
+
+                // If not the save dialog. then assume it's been approved.
                 super.approveSelection();
             }
         };
@@ -86,7 +98,12 @@ public class Main extends javax.swing.JFrame {
 
             // Remove previous JSON object tree and reload GUI.
             jsonRoot.removeAllChildren();
-            jsonRoot.setUserObject(new JSONReference(String.format("root: %s", jsonFile.getName()), jsonData));
+            
+            // Set name and rebuild the root JSONObject key/value list.
+            jsonRoot.name = String.format("root: %s", jsonFile.getName());
+            jsonRoot.buildKeyValues(jsonData);
+            
+            // Reload tree.
             ((DefaultTreeModel) jsonTree.getModel()).reload();
 
             // Build the JSON tree again, expand root, select root node.
@@ -99,22 +116,19 @@ public class Main extends javax.swing.JFrame {
     }
 
     /**
-     * Recursively builds a tree of DefaultMutableTreeNodes containing
-     * JSONReference values using the given JSONObject and
-     * DefaultMutableTreeNode.
+     * Recursively builds a tree of JSONObjectTreeNodes containing JSONReference
+     * values using the given JSONObject and JSONObjectTreeNode.
      *
      * @param treeNode Tree node to add JSONObject values to.
      * @param jsonData The JSONObject with values to add.
      * @throws JSONException
      */
-    void buildJSONTree(DefaultMutableTreeNode treeNode, JSONObject jsonData)
+    void buildJSONTree(JSONObjectTreeNode treeNode, JSONObject jsonData)
             throws JSONException {
         for (String key : (Set<String>) jsonData.keySet()) {
             if (jsonData.optJSONObject(key) != null) {
-                JSONReference ref = new JSONReference(key, jsonData.getJSONObject(key));
-
-                DefaultMutableTreeNode innerObject =
-                        new DefaultMutableTreeNode(ref);
+                JSONObjectTreeNode innerObject =
+                        new JSONObjectTreeNode(key, jsonData.getJSONObject(key));
                 buildJSONTree(innerObject, jsonData.getJSONObject(key));
 
                 treeNode.add(innerObject);
@@ -128,10 +142,9 @@ public class Main extends javax.swing.JFrame {
      *
      * @param ref The JSONReference instance to build a table from.
      */
-    void buildTableElements(JSONReference ref) {
+    void buildTableElements(JSONObjectTreeNode ref) {
         DefaultTableModel jsonTable = ((DefaultTableModel) jsonObjectTable.getModel());
 
-        // TODO Save previous values.
         for (int i = jsonTable.getRowCount() - 1; i >= 0; i--) {
             jsonTable.removeRow(i);
         }
@@ -163,9 +176,7 @@ public class Main extends javax.swing.JFrame {
         try {
             JSONObject export = exportJSONTree(jsonRoot);
 
-            System.out.println(export.toString(4));
-            // TODO actual write to file
-            try (FileOutputStream fOut = new FileOutputStream(jsonFile);
+            try (FileOutputStream fOut = new FileOutputStream(jsonFile, false);
                     BufferedOutputStream bOut = new BufferedOutputStream(fOut);
                     PrintStream pOut = new PrintStream(bOut)) {
                 pOut.print(export.toString(4));
@@ -178,28 +189,26 @@ public class Main extends javax.swing.JFrame {
     }
 
     /**
-     * Recursively exports a tree represented by DefaultMutableTreeNode
-     * instances containing JSONReference objects as a JSONObject.
+     * Recursively exports a tree represented by JSONObjectTreeNode instances
+     * containing JSONReference objects as a JSONObject.
      *
      * @param treeNode The node to use as the root to export from.
      * @return A JSONObject
      * @throws JSONException
      */
-    JSONObject exportJSONTree(DefaultMutableTreeNode treeNode) throws JSONException {
+    JSONObject exportJSONTree(JSONObjectTreeNode treeNode) throws JSONException {
         JSONObject rootObject = new JSONObject();
 
-        Enumeration<DefaultMutableTreeNode> childNodes = treeNode.children();
+        Enumeration<JSONObjectTreeNode> childNodes = treeNode.children();
 
         while (childNodes.hasMoreElements()) {
-            DefaultMutableTreeNode childNode = childNodes.nextElement();
+            JSONObjectTreeNode childNode = childNodes.nextElement();
             JSONObject innerObject = exportJSONTree(childNode);
 
             rootObject.put(childNode.toString(), innerObject);
         }
 
-        JSONReference values = (JSONReference) treeNode.getUserObject();
-
-        for (Map.Entry<String, Object> entry : values.keyValues.entrySet()) {
+        for (Map.Entry<String, Object> entry : treeNode.keyValues.entrySet()) {
             // TODO persist changes made in editor
             rootObject.put(entry.getKey(), entry.getValue());
         }
@@ -330,15 +339,14 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_menuItemOpenActionPerformed
 
     private void jsonTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jsonTreeValueChanged
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) jsonTree.getLastSelectedPathComponent();
+        JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
 
         if (node == null) {
             return;
         }
 
-        JSONReference jsonNode = (JSONReference) node.getUserObject();
-        workingJSONObject = jsonNode;
-        buildTableElements(jsonNode);
+        workingJSONObject = node;
+        buildTableElements(node);
     }//GEN-LAST:event_jsonTreeValueChanged
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
