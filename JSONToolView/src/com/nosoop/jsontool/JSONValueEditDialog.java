@@ -9,14 +9,12 @@ import bundled.jsontool.org.json.JSONException;
 import com.nosoop.inputdialog.ModalInputDialog;
 
 /**
- * 
+ *
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JSONValueDialogResponse> {
-
     static enum ValueTypes {
-
-        BOOLEAN, DOUBLE, INT, LONG, STRING, ARRAY;
+        BOOLEAN, DOUBLE, INT, LONG, STRING, ARRAY, NULL;
 
         @Override
         public String toString() {
@@ -38,11 +36,11 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         }
     }
 
-    public class JSONValueDialogResponse {
-
+    public static class JSONValueDialogResponse {
         String key;
         Object value;
     }
+
     String key;
     Object value;
 
@@ -99,11 +97,6 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         editTypeLabel.setText("Type:");
 
         editTypeDropdown.setModel(new javax.swing.DefaultComboBoxModel(ValueTypes.values()));
-        editTypeDropdown.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editTypeDropdownActionPerformed(evt);
-            }
-        });
 
         editValueLabel.setText("Value:");
 
@@ -169,6 +162,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
     }// </editor-fold>//GEN-END:initComponents
 
     private void editCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editCancelButtonActionPerformed
+        // Return current key/value pair.
         this.setVisible(false);
     }//GEN-LAST:event_editCancelButtonActionPerformed
 
@@ -176,7 +170,8 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         key = editNameField.getText();
         String stringValue = editValueField.getText();
 
-        // Parse expected value.
+        // Convert value to expected type.
+        // TODO Show if a value can't be parsed as the type when typing.
         switch ((ValueTypes) editTypeDropdown.getSelectedItem()) {
             case BOOLEAN:
                 value = Boolean.parseBoolean(stringValue);
@@ -198,6 +193,9 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
                 }
                 value = null;
                 break;
+            case NULL:
+                value = null;
+                break;
             case STRING:
                 value = stringValue;
                 break;
@@ -207,10 +205,6 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
 
         this.setVisible(false);
     }//GEN-LAST:event_editSaveButtonActionPerformed
-
-    private void editTypeDropdownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editTypeDropdownActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_editTypeDropdownActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton editCancelButton;
     private javax.swing.JTextField editNameField;
