@@ -35,6 +35,13 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
         buildKeyValues(object);
     }
 
+    /**
+     * Recursively builds a tree of JSONObjectTreeNodes using the specified
+     * JSONObject.
+     *
+     * @param jsonData The JSONObject with values to add.
+     * @throws JSONException when something done screwed itself up.
+     */
     final void buildKeyValues(JSONObject object) throws JSONException {
         keyValues = new HashMap<>();
 
@@ -45,6 +52,7 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
                 this.add(new JSONObjectTreeNode(key, object.getJSONObject(key),
                         false));
             }
+            // else if jsonarray?
         }
     }
 
@@ -54,9 +62,7 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
      * @param name
      */
     public void rename(String name) {
-        if (!isObjectRoot) {
-            this.name = name;
-        }
+        this.name = name;
     }
 
     /**
