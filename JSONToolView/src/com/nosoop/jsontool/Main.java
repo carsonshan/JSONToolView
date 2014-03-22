@@ -7,12 +7,16 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
 import bundled.jsontool.org.json.JSONTokener;
+import com.wordpress.tips4java.TableCellListener;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -46,6 +50,17 @@ public class Main extends javax.swing.JFrame {
         initComponents();
 
         FILE_DIALOG = new JFileChooser();
+
+        TableCellListener tcl = new TableCellListener(jsonObjectTable, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                TableCellListener tcl = (TableCellListener) e.getSource();
+                System.out.println("Row   : " + tcl.getRow());
+                System.out.println("Column: " + tcl.getColumn());
+                System.out.println("Old   : " + tcl.getOldValue());
+                System.out.println("New   : " + tcl.getNewValue());
+            }
+        });
     }
 
     /**
@@ -107,6 +122,7 @@ public class Main extends javax.swing.JFrame {
     void buildTableElements(JSONReference ref) {
         DefaultTableModel jsonTable = ((DefaultTableModel) jsonObjectTable.getModel());
 
+        // TODO Save previous values.
         for (int i = jsonTable.getRowCount() - 1; i >= 0; i--) {
             jsonTable.removeRow(i);
         }
@@ -118,13 +134,13 @@ public class Main extends javax.swing.JFrame {
 
     /**
      * Saves the current working file as JSON.
-     * 
+     *
      * @param jsonFile The file to save.
      */
     void saveFile(File jsonFile) {
         try {
             JSONObject export = exportJSONTree(jsonRoot);
-            
+
             System.out.println(export.toString(4));
             // TODO actual write to file
         } catch (JSONException e) {
