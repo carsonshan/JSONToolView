@@ -8,9 +8,13 @@ import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
 import bundled.jsontool.org.json.JSONTokener;
 import java.awt.event.MouseEvent;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
@@ -161,7 +165,13 @@ public class Main extends javax.swing.JFrame {
 
             System.out.println(export.toString(4));
             // TODO actual write to file
-            
+            try (FileOutputStream fOut = new FileOutputStream(jsonFile);
+                    BufferedOutputStream bOut = new BufferedOutputStream(fOut);
+                    PrintStream pOut = new PrintStream(bOut)) {
+                pOut.print(export.toString(4));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
