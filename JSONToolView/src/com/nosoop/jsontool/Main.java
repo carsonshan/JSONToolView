@@ -7,6 +7,7 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
 import bundled.jsontool.org.json.JSONTokener;
+import java.awt.EventQueue;
 import java.awt.event.MouseEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -99,15 +100,13 @@ public class Main extends javax.swing.JFrame {
             // Remove previous JSON object tree and reload GUI.
             jsonRoot.removeAllChildren();
             
-            // Set name and rebuild the root JSONObject key/value list.
-            jsonRoot.name = String.format("root: %s", jsonFile.getName());
-            jsonRoot.buildKeyValues(jsonData);
-            
             // Reload tree.
             ((DefaultTreeModel) jsonTree.getModel()).reload();
 
-            // Build the JSON tree again, expand root, select root node.
-            buildJSONTree(jsonRoot, jsonData);
+            // Generate tree structure.
+            jsonRoot.buildKeyValues(jsonData);
+            
+            // Expand root, select root node.
             jsonTree.expandRow(0);
             jsonTree.setSelectionPath(jsonTree.getPathForRow(0));
         } catch (JSONException | FileNotFoundException e) {
