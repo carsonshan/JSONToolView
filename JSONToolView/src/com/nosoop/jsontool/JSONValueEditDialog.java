@@ -4,18 +4,71 @@
  */
 package com.nosoop.jsontool;
 
+import bundled.jsontool.org.json.JSONArray;
+import bundled.jsontool.org.json.JSONException;
+import com.nosoop.inputdialog.ModalInputDialog;
+
 /**
- *
+ * 
  * @author nosoop < nosoop at users.noreply.github.com >
  */
-public class JSONValueEditDialog extends javax.swing.JDialog {
+public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JSONValueDialogResponse> {
+
+    static enum ValueTypes {
+
+        BOOLEAN, DOUBLE, INT, LONG, STRING, ARRAY;
+
+        @Override
+        public String toString() {
+            return this.name();
+        }
+
+        public static ValueTypes getValueType(Object object) {
+            switch (object.getClass().getSimpleName()) {
+                case "Integer":
+                    return INT;
+                case "Boolean":
+                    return BOOLEAN;
+                case "Double":
+                    return DOUBLE;
+                case "JSONArray":
+                    return ARRAY;
+            }
+            return STRING;
+        }
+    }
+
+    public class JSONValueDialogResponse {
+
+        String key;
+        Object value;
+    }
+    String key;
+    Object value;
 
     /**
      * Creates new form JSONValueEditDialog
      */
-    public JSONValueEditDialog(java.awt.Frame parent) {
-        super(parent, true);
+    public JSONValueEditDialog(java.awt.Frame parent, String key, Object value) {
+        super(parent);
+
+        this.key = key;
+        this.value = value;
+
         initComponents();
+
+        editTypeDropdown.setSelectedItem(ValueTypes.getValueType(value));
+
+        this.setVisible(true);
+    }
+
+    @Override
+    public JSONValueEditDialog.JSONValueDialogResponse getReturnValue() {
+        JSONValueDialogResponse response = new JSONValueDialogResponse();
+        response.key = key;
+        response.value = value;
+
+        return response;
     }
 
     /**
@@ -37,14 +90,20 @@ public class JSONValueEditDialog extends javax.swing.JDialog {
         editValueField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Editing key " + key);
 
         editNameLabel.setText("Key:");
 
-        editNameField.setText("jTextField1");
+        editNameField.setText(this.key);
 
         editTypeLabel.setText("Type:");
 
-        editTypeDropdown.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        editTypeDropdown.setModel(new javax.swing.DefaultComboBoxModel(ValueTypes.values()));
+        editTypeDropdown.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editTypeDropdownActionPerformed(evt);
+            }
+        });
 
         editValueLabel.setText("Value:");
 
@@ -56,8 +115,13 @@ public class JSONValueEditDialog extends javax.swing.JDialog {
         });
 
         editSaveButton.setText("Save");
+        editSaveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editSaveButtonActionPerformed(evt);
+            }
+        });
 
-        editValueField.setText("jTextField2");
+        editValueField.setText(this.value.toString());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -105,9 +169,48 @@ public class JSONValueEditDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void editCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editCancelButtonActionPerformed
-        // TODO add your handling code here:
+        this.setVisible(false);
     }//GEN-LAST:event_editCancelButtonActionPerformed
 
+    private void editSaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editSaveButtonActionPerformed
+        key = editNameField.getText();
+        String stringValue = editValueField.getText();
+
+        // Parse expected value.
+        switch ((ValueTypes) editTypeDropdown.getSelectedItem()) {
+            case BOOLEAN:
+                value = Boolean.parseBoolean(stringValue);
+                break;
+            case INT:
+                value = Integer.parseInt(stringValue);
+                break;
+            case LONG:
+                value = Long.parseLong(stringValue);
+                break;
+            case DOUBLE:
+                value = Double.parseDouble(stringValue);
+                break;
+            case ARRAY:
+                try {
+                    value = new JSONArray(stringValue);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                value = null;
+                break;
+            case STRING:
+                value = stringValue;
+                break;
+            default:
+                throw new AssertionError("Value not one of the known typess.");
+        }
+
+        this.setVisible(false);
+    }//GEN-LAST:event_editSaveButtonActionPerformed
+
+    private void editTypeDropdownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editTypeDropdownActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_editTypeDropdownActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton editCancelButton;
     private javax.swing.JTextField editNameField;

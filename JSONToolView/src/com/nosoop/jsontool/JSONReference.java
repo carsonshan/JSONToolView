@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
+ * A struct containing a JSONObject's non-JSONObject key/value pairs.
+ * (JSONObject values are 
+ * 
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public class JSONReference {

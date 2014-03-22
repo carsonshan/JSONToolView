@@ -7,16 +7,13 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
 import bundled.jsontool.org.json.JSONTokener;
-import com.wordpress.tips4java.TableCellListener;
-import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -30,6 +27,7 @@ import javax.swing.tree.DefaultTreeModel;
 public class Main extends javax.swing.JFrame {
 
     DefaultMutableTreeNode jsonRoot;
+    JSONReference workingJSONObject;
     Object[][] dataTable;
 
     /**
@@ -43,24 +41,33 @@ public class Main extends javax.swing.JFrame {
         } catch (JSONException e) {
         }
 
-        dataTable = new Object[][]{
-            {null, null, null}
-        };
+        dataTable = new Object[][]{};
 
         initComponents();
 
-        FILE_DIALOG = new JFileChooser();
-
-        TableCellListener tcl = new TableCellListener(jsonObjectTable, new AbstractAction() {
+        FILE_DIALOG = new JFileChooser() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                TableCellListener tcl = (TableCellListener) e.getSource();
-                System.out.println("Row   : " + tcl.getRow());
-                System.out.println("Column: " + tcl.getColumn());
-                System.out.println("Old   : " + tcl.getOldValue());
-                System.out.println("New   : " + tcl.getNewValue());
+            public void approveSelection() {
+                File f = getSelectedFile();
+                if (f.exists() && getDialogType() == SAVE_DIALOG) {
+                    int result = JOptionPane.showConfirmDialog(this, "The file exists, overwrite?", "Existing file", JOptionPane.YES_NO_OPTION);
+                    switch (result) {
+                        case JOptionPane.YES_OPTION:
+                            super.approveSelection();
+                            return;
+                        case JOptionPane.NO_OPTION:
+                            cancelSelection();
+                            return;
+                        case JOptionPane.CLOSED_OPTION:
+                            return;
+                    }
+                    return;
+                }
+                
+                // If not the save dialog.
+                super.approveSelection();
             }
-        });
+        };
     }
 
     /**
@@ -82,10 +89,8 @@ public class Main extends javax.swing.JFrame {
             buildJSONTree(jsonRoot, jsonData);
             jsonTree.expandRow(0);
             jsonTree.setSelectionPath(jsonTree.getPathForRow(0));
-        } catch (JSONException e) {
+        } catch (JSONException | FileNotFoundException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
-        } catch (FileNotFoundException e) {
-            // Well, you're boned.
         }
     }
 
@@ -133,6 +138,19 @@ public class Main extends javax.swing.JFrame {
     }
 
     /**
+     * Updates the working JSONReference instance with a new key / value pair.
+     *
+     * @param key
+     * @param value
+     */
+    void updateWorkingKeyValue(String key, Object value) {
+        workingJSONObject.keyValues.put(key, value);
+
+        // Rebuild table just for the value being changed.
+        buildTableElements(workingJSONObject);
+    }
+
+    /**
      * Saves the current working file as JSON.
      *
      * @param jsonFile The file to save.
@@ -143,6 +161,7 @@ public class Main extends javax.swing.JFrame {
 
             System.out.println(export.toString(4));
             // TODO actual write to file
+            
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -226,14 +245,25 @@ public class Main extends javax.swing.JFrame {
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                //Only the third column
+                return false;
+            }
         });
-        jsonObjectTable.setColumnSelectionAllowed(true);
         jsonObjectTable.setFillsViewportHeight(true);
+        jsonObjectTable.setFocusable(false);
+        jsonObjectTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jsonObjectTable.setShowHorizontalLines(false);
         jsonObjectTable.setShowVerticalLines(false);
         jsonObjectTable.getTableHeader().setReorderingAllowed(false);
+        jsonObjectTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jsonObjectTableMouseClicked(evt);
+            }
+        });
         jsonTableScrollPane.setViewportView(jsonObjectTable);
-        jsonObjectTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
         jsonMainPane.setRightComponent(jsonTableScrollPane);
 
@@ -297,6 +327,7 @@ public class Main extends javax.swing.JFrame {
         }
 
         JSONReference jsonNode = (JSONReference) node.getUserObject();
+        workingJSONObject = jsonNode;
         buildTableElements(jsonNode);
     }//GEN-LAST:event_jsonTreeValueChanged
 
@@ -309,6 +340,29 @@ public class Main extends javax.swing.JFrame {
             saveFile(file);
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jsonObjectTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jsonObjectTableMouseClicked
+        int targetRow = jsonObjectTable.getSelectedRow();
+
+        if (evt.getClickCount() == 2
+                && evt.getButton() == MouseEvent.BUTTON1) {
+            if (targetRow >= 0) {
+                String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+                Object object = workingJSONObject.keyValues.get(key);
+
+                JSONValueEditDialog.JSONValueDialogResponse returnValue =
+                        (new JSONValueEditDialog(this, key, object))
+                        .getReturnValue();
+
+                String newKey = returnValue.key;
+                Object newValue = returnValue.value;
+
+                workingJSONObject.keyValues.remove(key);
+
+                updateWorkingKeyValue(newKey, newValue);
+            }
+        }
+    }//GEN-LAST:event_jsonObjectTableMouseClicked
 
     /**
      * @param args the command line arguments
