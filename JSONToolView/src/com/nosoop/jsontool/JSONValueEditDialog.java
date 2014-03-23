@@ -186,7 +186,6 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
                 value = Double.parseDouble(stringValue);
                 break;
             case ARRAY:
-                value = null;
                 try {
                     value = new JSONArray(stringValue);
                 } catch (JSONException e) {

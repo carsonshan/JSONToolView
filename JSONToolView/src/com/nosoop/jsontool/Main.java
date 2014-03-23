@@ -83,6 +83,8 @@ public class Main extends javax.swing.JFrame {
                 super.approveSelection();
             }
         };
+        
+        // TODO add support for non-leaf tree nodes.
     }
 
     /**
@@ -126,7 +128,7 @@ public class Main extends javax.swing.JFrame {
 
         for (Map.Entry keyValues : ref.keyValues.entrySet()) {
             // TODO patch up addrow to support JSONArrays?
-            jsonTable.addRow(new Object[]{keyValues.getKey(), keyValues.getValue().getClass().getSimpleName(), keyValues.getValue().toString() });
+            jsonTable.addRow(new Object[]{keyValues.getKey(), keyValues.getValue().getClass().getSimpleName(), keyValues.getValue().toString()});
         }
     }
 
@@ -213,6 +215,7 @@ public class Main extends javax.swing.JFrame {
         menuFileOpen = new javax.swing.JMenuItem();
         menuFileSave = new javax.swing.JMenuItem();
         menuEdit = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
 
         jsonKeyDelete.setText("Delete key / value pairs");
         jsonKeyDelete.addActionListener(new java.awt.event.ActionListener() {
@@ -304,7 +307,16 @@ public class Main extends javax.swing.JFrame {
 
         menuBar.add(menuFile);
 
-        menuEdit.setText("Edit");
+        menuEdit.setText("View");
+
+        jMenuItem1.setText("View raw JSON text ...");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        menuEdit.add(jMenuItem1);
+
         menuBar.add(menuEdit);
 
         setJMenuBar(menuBar);
@@ -430,6 +442,15 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jsonObjectTableKeyPressed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        try {
+            JSONRawTextDialog dialog = new JSONRawTextDialog(this,
+                    exportJSONTree(jsonRoot));
+            dialog.setVisible(true);
+        } catch (JSONException e) {
+        }
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -455,6 +476,7 @@ public class Main extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jsonKeyDelete;
     private javax.swing.JSplitPane jsonMainPane;
     private javax.swing.JPopupMenu jsonObjectModify;
