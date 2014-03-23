@@ -112,6 +112,10 @@
           <SubComponents>
             <Component class="javax.swing.JTree" name="jsonTree">
               <Properties>
+                <Property name="dragEnabled" type="boolean" value="true" postCode="jsonTree.setTransferHandler(new JSONObjectTreeTransferHandler());"/>
+                <Property name="dropMode" type="javax.swing.DropMode" editor="org.netbeans.modules.form.editors.EnumEditor">
+                  <Value id="ON_OR_INSERT"/>
+                </Property>
                 <Property name="showsRootHandles" type="boolean" value="true"/>
               </Properties>
               <Events>

@@ -227,6 +227,9 @@ public class Main extends javax.swing.JFrame {
 
         jsonMainPane.setDividerLocation(192);
 
+        jsonTree.setDragEnabled(true);
+        jsonTree.setTransferHandler(new JSONObjectTreeTransferHandler());
+        jsonTree.setDropMode(javax.swing.DropMode.ON_OR_INSERT);
         jsonTree.setShowsRootHandles(true);
         jsonTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {

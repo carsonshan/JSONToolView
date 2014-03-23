@@ -35,6 +35,12 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
         buildKeyValues(object);
     }
 
+    public JSONObjectTreeNode(JSONObjectTreeNode nodeToBeDuplicated) {
+        this.isObjectRoot = nodeToBeDuplicated.isObjectRoot;
+        this.name = nodeToBeDuplicated.name;
+        this.keyValues = nodeToBeDuplicated.keyValues;
+    }
+
     /**
      * Recursively builds a tree of JSONObjectTreeNodes using the specified
      * JSONObject.
