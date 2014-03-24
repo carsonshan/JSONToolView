@@ -22,6 +22,10 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         }
 
         public static ValueTypes getValueType(Object object) {
+            if (object == null) {
+                return NULL;
+            }
+            
             switch (object.getClass().getSimpleName()) {
                 case "Integer":
                     return INT;
@@ -97,6 +101,11 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         editTypeLabel.setText("Type:");
 
         editTypeDropdown.setModel(new javax.swing.DefaultComboBoxModel(ValueTypes.values()));
+        editTypeDropdown.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editTypeDropdownActionPerformed(evt);
+            }
+        });
 
         editValueLabel.setText("Value:");
 
@@ -114,7 +123,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             }
         });
 
-        editValueField.setText(this.value.toString());
+        editValueField.setText(this.value != null ? this.value.toString() : "");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -204,6 +213,16 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
 
         this.setVisible(false);
     }//GEN-LAST:event_editSaveButtonActionPerformed
+
+    private void editTypeDropdownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editTypeDropdownActionPerformed
+        // Disable field on null.
+        if (editTypeDropdown.getSelectedItem() == ValueTypes.NULL) {
+            editValueField.setEnabled(false);
+        } else {
+            editValueField.setEnabled(true);
+        }
+    }//GEN-LAST:event_editTypeDropdownActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton editCancelButton;
     private javax.swing.JTextField editNameField;

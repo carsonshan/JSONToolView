@@ -95,6 +95,9 @@
           <Connection code="new javax.swing.DefaultComboBoxModel(ValueTypes.values())" type="code"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="editTypeDropdownActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="editValueLabel">
       <Properties>
@@ -120,7 +123,7 @@
     <Component class="javax.swing.JTextField" name="editValueField">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="this.value.toString()" type="code"/>
+          <Connection code="this.value != null ? this.value.toString() : &quot;&quot;" type="code"/>
         </Property>
       </Properties>
     </Component>

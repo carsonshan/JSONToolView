@@ -83,7 +83,7 @@ public class Main extends javax.swing.JFrame {
                 super.approveSelection();
             }
         };
-        
+
         // TODO add support for non-leaf tree nodes.
     }
 
@@ -128,7 +128,17 @@ public class Main extends javax.swing.JFrame {
 
         for (Map.Entry keyValues : ref.keyValues.entrySet()) {
             // TODO patch up addrow to support JSONArrays?
-            jsonTable.addRow(new Object[]{keyValues.getKey(), keyValues.getValue().getClass().getSimpleName(), keyValues.getValue().toString()});
+            Object value = keyValues.getValue();
+            String textValue, classValue;
+            if (value != null) {
+                textValue = value.toString();
+                classValue = value.getClass().getSimpleName();
+            } else {
+                classValue = "Null";
+                textValue = "";
+            }
+
+            jsonTable.addRow(new Object[]{keyValues.getKey(), classValue, textValue});
         }
     }
 
@@ -188,7 +198,13 @@ public class Main extends javax.swing.JFrame {
         }
 
         for (Map.Entry<String, Object> entry : treeNode.keyValues.entrySet()) {
-            rootObject.put(entry.getKey(), entry.getValue());
+            // Put a non-ambiguous 'null' instance.
+            if (entry.getValue() == null) {
+                rootObject.put(entry.getKey(), JSONObject.NULL);
+            } else {
+                rootObject.put(entry.getKey(), entry.getValue());
+            }
+            //System.out.printf("%s : %s%n", entry.getKey(), entry.getValue());
         }
 
         return rootObject;
@@ -379,6 +395,8 @@ public class Main extends javax.swing.JFrame {
             if (targetRow >= 0) {
                 // Modify the selected key/value pair.
                 String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+
+                // Get the keyvalue from the object and not parsed from the table.
                 Object object = workingJSONObject.keyValues.get(key);
 
                 // Pop-up a modal dialog box to edit the key/value.
