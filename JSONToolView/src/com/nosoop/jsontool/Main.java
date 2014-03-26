@@ -7,6 +7,7 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
 import bundled.jsontool.org.json.JSONTokener;
+import java.awt.EventQueue;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.BufferedOutputStream;
@@ -36,8 +37,6 @@ public class Main extends javax.swing.JFrame {
      * Creates the JFrame form.
      */
     public Main() {
-        //jsonRoot = new JSONObjectTreeNode();
-
         try {
             jsonRoot = new JSONObjectTreeNode(String.format("root: no file"), new JSONObject());
         } catch (JSONException e) {
@@ -49,12 +48,12 @@ public class Main extends javax.swing.JFrame {
         initComponents();
 
         FILE_DIALOG = new JFileChooser() {
-            final String CONFIRM_MESSAGE = "The file exists.  Overwrite?",
-                    CONFIRM_TITLE = "JSONToolView";
-
             /**
              * Subclass to add a confirm message.
              */
+            final String CONFIRM_MESSAGE = "The file exists.  Overwrite?",
+                    CONFIRM_TITLE = "JSONToolView";
+
             @Override
             public void approveSelection() {
                 File file = getSelectedFile();
@@ -84,7 +83,7 @@ public class Main extends javax.swing.JFrame {
             }
         };
 
-        // TODO add support for non-leaf tree nodes.
+        // TODO add support to drag-and-drop for non-leaf tree nodes.
     }
 
     /**
@@ -93,53 +92,63 @@ public class Main extends javax.swing.JFrame {
      * @param jsonFile The file to load. Assumed JSON; a message will be
      * displayed with the exception message if a JSONException is caught.
      */
-    void loadFile(File jsonFile) {
-        try {
-            JSONObject jsonData = new JSONObject(new JSONTokener(new FileInputStream(jsonFile)));
+    void loadFile(final File jsonFile) {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonData = new JSONObject(new JSONTokener(new FileInputStream(jsonFile)));
 
-            // Remove previous JSON object tree and reload GUI.
-            jsonRoot.removeAllChildren();
+                    // Remove previous JSON object tree and reload GUI.
+                    jsonRoot.removeAllChildren();
 
-            // Reload tree.
-            ((DefaultTreeModel) jsonTree.getModel()).reload();
+                    // Reload tree.
+                    ((DefaultTreeModel) jsonTree.getModel()).reload();
 
-            // Generate tree structure.
-            jsonRoot.buildKeyValues(jsonData);
+                    // Generate tree structure.
+                    jsonRoot.buildKeyValues(jsonData);
 
-            // Expand root, select root node.
-            jsonTree.expandRow(0);
-            jsonTree.setSelectionPath(jsonTree.getPathForRow(0));
-        } catch (JSONException | FileNotFoundException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-        }
+                    // Expand root, select root node.
+                    jsonTree.expandRow(0);
+                    jsonTree.setSelectionPath(jsonTree.getPathForRow(0));
+                } catch (JSONException | FileNotFoundException e) {
+                    JOptionPane.showMessageDialog(Main.this, e.getMessage());
+                }
+            }
+        });
     }
 
     /**
      * Builds a table of key / type / value objects for a selected JSONReference
      * instance.
      *
-     * @param ref The JSONReference instance to build a table from.
+     * @param referenceNode The JSONReference instance to build a table from.
      */
-    void buildTableElements(JSONObjectTreeNode ref) {
-        DefaultTableModel jsonTable = ((DefaultTableModel) jsonObjectTable.getModel());
+    void buildTableElements(final JSONObjectTreeNode referenceNode) {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                DefaultTableModel jsonTable = ((DefaultTableModel) jsonObjectTable.getModel());
 
-        // Fastest way to clear the table.
-        jsonTable.setNumRows(0);
+                // Fastest way to clear the table.
+                jsonTable.setNumRows(0);
 
-        for (Map.Entry keyValues : ref.keyValues.entrySet()) {
-            // TODO patch up addrow to support JSONArrays?
-            Object value = keyValues.getValue();
-            String textValue, classValue;
-            if (value != null) {
-                textValue = value.toString();
-                classValue = value.getClass().getSimpleName();
-            } else {
-                classValue = "Null";
-                textValue = "";
+                for (Map.Entry keyValues : referenceNode.keyValues.entrySet()) {
+                    // TODO patch up addrow to support JSONArrays?
+                    Object value = keyValues.getValue();
+                    String textValue, classValue;
+                    if (value != null) {
+                        textValue = value.toString();
+                        classValue = value.getClass().getSimpleName();
+                    } else {
+                        classValue = "Null";
+                        textValue = "";
+                    }
+
+                    jsonTable.addRow(new Object[]{keyValues.getKey(), classValue, textValue});
+                }
             }
-
-            jsonTable.addRow(new Object[]{keyValues.getKey(), classValue, textValue});
-        }
+        });
     }
 
     /**
@@ -161,20 +170,25 @@ public class Main extends javax.swing.JFrame {
      *
      * @param jsonFile The file to save.
      */
-    void saveFile(File jsonFile) {
-        try {
-            JSONObject export = exportJSONTree(jsonRoot);
+    void saveFile(final File jsonFile) {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject export = exportJSONTree(jsonRoot);
 
-            try (FileOutputStream fOut = new FileOutputStream(jsonFile, false);
-                    BufferedOutputStream bOut = new BufferedOutputStream(fOut);
-                    PrintStream pOut = new PrintStream(bOut)) {
-                pOut.print(export.toString(4));
-            } catch (IOException e) {
-                e.printStackTrace();
+                    try (FileOutputStream fOut = new FileOutputStream(jsonFile, false);
+                            BufferedOutputStream bOut = new BufferedOutputStream(fOut);
+                            PrintStream pOut = new PrintStream(bOut)) {
+                        pOut.print(export.toString(4));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     /**
@@ -198,13 +212,8 @@ public class Main extends javax.swing.JFrame {
         }
 
         for (Map.Entry<String, Object> entry : treeNode.keyValues.entrySet()) {
-            // Put a non-ambiguous 'null' instance.
-            if (entry.getValue() == null) {
-                rootObject.put(entry.getKey(), JSONObject.NULL);
-            } else {
-                rootObject.put(entry.getKey(), entry.getValue());
-            }
-            //System.out.printf("%s : %s%n", entry.getKey(), entry.getValue());
+            // Wrap values. Mainly for null.
+            rootObject.put(entry.getKey(), JSONObject.wrap(entry.getValue()));
         }
 
         return rootObject;
