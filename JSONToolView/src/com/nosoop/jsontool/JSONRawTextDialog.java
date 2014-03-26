@@ -51,6 +51,7 @@ public class JSONRawTextDialog extends javax.swing.JDialog {
 
         jLabel1.setText("Raw JSON text preview:");
 
+        jsonTextArea.setEditable(false);
         jsonTextArea.setColumns(20);
         jsonTextArea.setFont(new java.awt.Font("Monospaced", 0, 11)); // NOI18N
         jsonTextArea.setRows(5);
