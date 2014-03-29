@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Map;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -38,7 +39,7 @@ public class Main extends javax.swing.JFrame {
      */
     public Main() {
         try {
-            jsonRoot = new JSONObjectTreeNode(String.format("root: no file"), new JSONObject());
+            jsonRoot = new JSONObjectTreeNode(String.format("root: new file"), new JSONObject());
             workingJSONObject = jsonRoot;
         } catch (JSONException e) {
             throw new Error(e);
@@ -235,6 +236,7 @@ public class Main extends javax.swing.JFrame {
         jsonObjectTreeModify = new javax.swing.JPopupMenu();
         jsonTreeNewChildNode = new javax.swing.JMenuItem();
         jsonTreeRenameNode = new javax.swing.JMenuItem();
+        jsonTreeRemoveNode = new javax.swing.JMenuItem();
         jsonMainPane = new javax.swing.JSplitPane();
         jsonTreeScrollPane = new javax.swing.JScrollPane();
         jsonTree = new javax.swing.JTree(jsonRoot);
@@ -246,6 +248,7 @@ public class Main extends javax.swing.JFrame {
         menuFileSave = new javax.swing.JMenuItem();
         menuEdit = new javax.swing.JMenu();
         menuViewRawJSON = new javax.swing.JMenuItem();
+        menuViewSelectionRawJSON = new javax.swing.JMenuItem();
 
         jsonKeyDelete.setText("Delete key / value pair...");
         jsonKeyDelete.addActionListener(new java.awt.event.ActionListener() {
@@ -264,6 +267,11 @@ public class Main extends javax.swing.JFrame {
         jsonKeyValueModify.add(jsonKeyCreate);
 
         jsonTreeNewChildNode.setText("Create new child node...");
+        jsonTreeNewChildNode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonTreeNewChildNodeActionPerformed(evt);
+            }
+        });
         jsonObjectTreeModify.add(jsonTreeNewChildNode);
 
         jsonTreeRenameNode.setText("Rename selected node...");
@@ -273,6 +281,14 @@ public class Main extends javax.swing.JFrame {
             }
         });
         jsonObjectTreeModify.add(jsonTreeRenameNode);
+
+        jsonTreeRemoveNode.setText("Delete selected node...");
+        jsonTreeRemoveNode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonTreeRemoveNodeActionPerformed(evt);
+            }
+        });
+        jsonObjectTreeModify.add(jsonTreeRemoveNode);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JSONToolView pre-alpha");
@@ -370,6 +386,14 @@ public class Main extends javax.swing.JFrame {
             }
         });
         menuEdit.add(menuViewRawJSON);
+
+        menuViewSelectionRawJSON.setText("View raw JSON text (selection)...");
+        menuViewSelectionRawJSON.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuViewSelectionRawJSONActionPerformed(evt);
+            }
+        });
+        menuEdit.add(menuViewSelectionRawJSON);
 
         menuBar.add(menuEdit);
 
@@ -482,7 +506,7 @@ public class Main extends javax.swing.JFrame {
         if (evt.getButton() == MouseEvent.BUTTON3) {
             // Set menu option as enabled if we have a key / value selected.
             jsonKeyDelete.setEnabled(targetRow >= 0);
-            
+
             jsonKeyValueModify.show(jsonObjectTable, evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_jsonObjectTableMouseReleased
@@ -529,6 +553,8 @@ public class Main extends javax.swing.JFrame {
                     exportJSONTree(jsonRoot));
             dialog.setVisible(true);
         } catch (JSONException e) {
+            // Uh. Something wrong happened.
+            // We should /prrroooobably/ log this.
         }
     }//GEN-LAST:event_menuViewRawJSONActionPerformed
 
@@ -536,7 +562,7 @@ public class Main extends javax.swing.JFrame {
         /**
          * Add a new key / value pair.
          */
-        String key = "<new key>";
+        String key = "";
         Object object = null;
 
         JSONValueEditDialog.JSONValueDialogResponse returnValue =
@@ -552,21 +578,93 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jsonKeyCreateActionPerformed
 
     private void jsonTreeRenameNodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonTreeRenameNodeActionPerformed
-        String s = (String) JOptionPane.showInputDialog(this, "New node name:", "");
-        
+        /**
+         * Renames the selected node.
+         */
+        JSONObjectTreeNode node =
+                (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+
+        String s = (String) JOptionPane.showInputDialog(this,
+                "New node name:", node.getName());
+
         if (s != null && s.length() > 0) {
-            // TODO Rename tree node.
+            node.setName(s);
         }
     }//GEN-LAST:event_jsonTreeRenameNodeActionPerformed
 
     private void jsonTreeMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jsonTreeMouseReleased
         /**
-         * Show right-click menu.
+         * Show right-click menu for 'node' actions.
          */
         if (evt.getButton() == MouseEvent.BUTTON3) {
+            JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+
+            // Disable node rename / delete if the selected non-null node is the root.
+            jsonTreeRenameNode.setEnabled(
+                    node != null ? !node.isObjectRoot : false);
+            jsonTreeRemoveNode.setEnabled(
+                    node != null ? !node.isObjectRoot : false);
+
+            // Disable node creation if the selected node is null.
+            jsonTreeNewChildNode.setEnabled(node != null);
+
+            // Show menu.
             jsonObjectTreeModify.show(jsonTree, evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_jsonTreeMouseReleased
+
+    private void jsonTreeNewChildNodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonTreeNewChildNodeActionPerformed
+        /**
+         * Create a new child node.
+         */
+        JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+
+        String s = (String) JOptionPane.showInputDialog(this,
+                "New node name:", "");
+
+        if (s != null && s.length() > 0) {
+            node.add(new JSONObjectTreeNode(s));
+            ((DefaultTreeModel) jsonTree.getModel()).reload(node);
+
+            // TODO Set selection to new JSONObjectTreeNode.
+        }
+    }//GEN-LAST:event_jsonTreeNewChildNodeActionPerformed
+
+    private void jsonTreeRemoveNodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonTreeRemoveNodeActionPerformed
+        /**
+         * Removes the selected node and its children.
+         */
+        JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+
+        jsonRoot.remove(node);
+        ((DefaultTreeModel) jsonTree.getModel()).reload();
+
+        jsonTree.setSelectionPath(jsonTree.getSelectionPath().getParentPath());
+    }//GEN-LAST:event_jsonTreeRemoveNodeActionPerformed
+
+    private void menuViewSelectionRawJSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewSelectionRawJSONActionPerformed
+        /**
+         * Shows a dialog containing a raw text preview of the current JSON
+         * file.
+         */
+        JSONObjectTreeNode selectedNode = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+
+        if (selectedNode != null) {
+            try {
+                JSONRawTextDialog dialog = new JSONRawTextDialog(this,
+                        exportJSONTree(selectedNode));
+                dialog.setVisible(true);
+            } catch (JSONException e) {
+                // Uh. Something wrong happened.
+                // We should /prrroooobably/ log this.
+            }
+        } else {
+            JOptionPane.showMessageDialog(Main.this,
+                    "No node selected.",
+                    "Error showing raw JSON text.",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_menuViewSelectionRawJSONActionPerformed
 
     /**
      * @param args the command line arguments
@@ -602,6 +700,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JScrollPane jsonTableScrollPane;
     private javax.swing.JTree jsonTree;
     private javax.swing.JMenuItem jsonTreeNewChildNode;
+    private javax.swing.JMenuItem jsonTreeRemoveNode;
     private javax.swing.JMenuItem jsonTreeRenameNode;
     private javax.swing.JScrollPane jsonTreeScrollPane;
     private javax.swing.JMenuBar menuBar;
@@ -610,5 +709,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuItem menuFileOpen;
     private javax.swing.JMenuItem menuFileSave;
     private javax.swing.JMenuItem menuViewRawJSON;
+    private javax.swing.JMenuItem menuViewSelectionRawJSON;
     // End of variables declaration//GEN-END:variables
 }

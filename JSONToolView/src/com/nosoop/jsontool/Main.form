@@ -36,6 +36,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Create new child node..."/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonTreeNewChildNodeActionPerformed"/>
+          </Events>
         </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="jsonTreeRenameNode">
           <Properties>
@@ -43,6 +46,14 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonTreeRenameNodeActionPerformed"/>
+          </Events>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="jsonTreeRemoveNode">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Delete selected node..."/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonTreeRemoveNodeActionPerformed"/>
           </Events>
         </MenuItem>
       </SubComponents>
@@ -89,6 +100,14 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuViewRawJSONActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="menuViewSelectionRawJSON">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="View raw JSON text (selection)..."/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuViewSelectionRawJSONActionPerformed"/>
               </Events>
             </MenuItem>
           </SubComponents>
