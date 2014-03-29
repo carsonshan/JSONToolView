@@ -24,6 +24,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 /**
  *
@@ -623,10 +624,12 @@ public class Main extends javax.swing.JFrame {
                 "New node name:", "");
 
         if (s != null && s.length() > 0) {
-            node.add(new JSONObjectTreeNode(s));
+            JSONObjectTreeNode childNode = new JSONObjectTreeNode(s);
+            node.add(childNode);
             ((DefaultTreeModel) jsonTree.getModel()).reload(node);
 
-            // TODO Set selection to new JSONObjectTreeNode.
+            // Move to child node.
+            jsonTree.setSelectionPath(new TreePath(childNode.getPath()));
         }
     }//GEN-LAST:event_jsonTreeNewChildNodeActionPerformed
 
@@ -636,10 +639,11 @@ public class Main extends javax.swing.JFrame {
          */
         JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
 
+        // Move up to parent path.
+        jsonTree.setSelectionPath(jsonTree.getSelectionPath().getParentPath());
+        
         jsonRoot.remove(node);
         ((DefaultTreeModel) jsonTree.getModel()).reload();
-
-        jsonTree.setSelectionPath(jsonTree.getSelectionPath().getParentPath());
     }//GEN-LAST:event_jsonTreeRemoveNodeActionPerformed
 
     private void menuViewSelectionRawJSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewSelectionRawJSONActionPerformed
