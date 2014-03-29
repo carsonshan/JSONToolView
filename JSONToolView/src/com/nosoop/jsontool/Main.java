@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Map;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -220,6 +219,30 @@ public class Main extends javax.swing.JFrame {
         }
 
         return rootObject;
+    }
+
+    /**
+     * Checks whether or not a node has an existing key in its object table or
+     * as children nodes.
+     *
+     * @param node The JSONObjectTreeNode instance to check a key name for.
+     * @param inputKey A key to check the existence of.
+     * @return
+     */
+    boolean keyExistsInNode(JSONObjectTreeNode node, String inputKey) {
+        for (String key : node.keyValues.keySet()) {
+            if (key.equals(inputKey)) {
+                return true;
+            }
+        }
+
+        Enumeration<JSONObjectTreeNode> children = node.children();
+        while (children.hasMoreElements()) {
+            if (children.nextElement().getName().equals(inputKey)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -589,7 +612,14 @@ public class Main extends javax.swing.JFrame {
                 "New node name:", node.getName());
 
         if (s != null && s.length() > 0) {
-            node.setName(s);
+            if (!keyExistsInNode((JSONObjectTreeNode) node.getParent(), s)) {
+                node.setName(s);
+            } else {
+                JOptionPane.showMessageDialog(Main.this,
+                        "Key already exists.",
+                        "Error renaming node.",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_jsonTreeRenameNodeActionPerformed
 
@@ -624,12 +654,19 @@ public class Main extends javax.swing.JFrame {
                 "New node name:", "");
 
         if (s != null && s.length() > 0) {
-            JSONObjectTreeNode childNode = new JSONObjectTreeNode(s);
-            node.add(childNode);
-            ((DefaultTreeModel) jsonTree.getModel()).reload(node);
+            if (!keyExistsInNode(node, s)) {
+                JSONObjectTreeNode childNode = new JSONObjectTreeNode(s);
+                node.add(childNode);
+                ((DefaultTreeModel) jsonTree.getModel()).reload(node);
 
-            // Move to child node.
-            jsonTree.setSelectionPath(new TreePath(childNode.getPath()));
+                // Move to child node.
+                jsonTree.setSelectionPath(new TreePath(childNode.getPath()));
+            } else {
+                JOptionPane.showMessageDialog(Main.this,
+                        "Key already exists.",
+                        "Error creating child node.",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_jsonTreeNewChildNodeActionPerformed
 
@@ -641,7 +678,7 @@ public class Main extends javax.swing.JFrame {
 
         // Move up to parent path.
         jsonTree.setSelectionPath(jsonTree.getSelectionPath().getParentPath());
-        
+
         jsonRoot.remove(node);
         ((DefaultTreeModel) jsonTree.getModel()).reload();
     }//GEN-LAST:event_jsonTreeRemoveNodeActionPerformed
