@@ -18,7 +18,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public class JSONObjectTreeNode extends DefaultMutableTreeNode {
-
     boolean isObjectRoot;
     private String name;
     Map<String, Object> keyValues;
@@ -27,6 +26,14 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
         this(name, object, true);
     }
 
+    /**
+     * Generates a new JSONObjectTreeNode from a JSONObject.
+     * 
+     * @param name Name of the node (name of the JSONObject).
+     * @param object The JSONObject data for the node.
+     * @param isRoot Whether or not the instance is the tree root. Probably not.
+     * @throws JSONException 
+     */
     private JSONObjectTreeNode(String name, JSONObject object, boolean isRoot)
             throws JSONException {
         this.name = name;
@@ -35,10 +42,28 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
         buildKeyValues(object);
     }
 
-    public JSONObjectTreeNode(JSONObjectTreeNode nodeToBeDuplicated) {
+    /**
+     * Duplicates a node.
+     *
+     * @param nodeToBeDuplicated The JSONObjectTreeNode instance to be
+     * duplicated.
+     */
+    JSONObjectTreeNode(JSONObjectTreeNode nodeToBeDuplicated) {
         this.isObjectRoot = nodeToBeDuplicated.isObjectRoot;
         this.name = nodeToBeDuplicated.name;
         this.keyValues = nodeToBeDuplicated.keyValues;
+    }
+
+    /**
+     * Creates a new, empty, non-root node. This node should be attached to a
+     * parent node.
+     *
+     * @param name The name for the node.
+     */
+    JSONObjectTreeNode(String name) {
+        this.name = name;
+        this.isObjectRoot = false;
+        this.keyValues = new HashMap<>();
     }
 
     /**
@@ -67,8 +92,17 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
      *
      * @param name
      */
-    public void rename(String name) {
+    public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Gets the name of the node.
+     *
+     * @return This node's name.
+     */
+    public String getName() {
+        return this.name;
     }
 
     /**
