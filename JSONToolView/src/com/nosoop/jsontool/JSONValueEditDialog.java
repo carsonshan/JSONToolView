@@ -39,14 +39,20 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             return STRING;
         }
     }
+    
+    static enum ReturnValue {
+        SAVE, CANCEL;
+    }
 
     public static class JSONValueDialogResponse {
         String key;
         Object value;
+        ReturnValue dialogResponse;
     }
 
     String key;
     Object value;
+    ReturnValue dialogResponse;
 
     /**
      * Creates new form JSONValueEditDialog
@@ -56,6 +62,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
 
         this.key = key;
         this.value = value;
+        this.dialogResponse = ReturnValue.CANCEL;
 
         initComponents();
 
@@ -69,6 +76,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         JSONValueDialogResponse response = new JSONValueDialogResponse();
         response.key = key;
         response.value = value;
+        response.dialogResponse = dialogResponse;
 
         return response;
     }
@@ -210,6 +218,8 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             default:
                 throw new AssertionError("Value not one of the known typess.");
         }
+        
+        this.dialogResponse = ReturnValue.SAVE;
 
         this.setVisible(false);
     }//GEN-LAST:event_editSaveButtonActionPerformed

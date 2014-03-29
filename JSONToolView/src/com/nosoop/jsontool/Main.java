@@ -39,6 +39,7 @@ public class Main extends javax.swing.JFrame {
     public Main() {
         try {
             jsonRoot = new JSONObjectTreeNode(String.format("root: no file"), new JSONObject());
+            workingJSONObject = jsonRoot;
         } catch (JSONException e) {
             throw new Error(e);
         }
@@ -228,8 +229,10 @@ public class Main extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jsonObjectModify = new javax.swing.JPopupMenu();
+        jsonKeyValueModify = new javax.swing.JPopupMenu();
         jsonKeyDelete = new javax.swing.JMenuItem();
+        jsonKeyCreate = new javax.swing.JMenuItem();
+        jsonObjectTreeModify = new javax.swing.JPopupMenu();
         jsonMainPane = new javax.swing.JSplitPane();
         jsonTreeScrollPane = new javax.swing.JScrollPane();
         jsonTree = new javax.swing.JTree(jsonRoot);
@@ -240,15 +243,23 @@ public class Main extends javax.swing.JFrame {
         menuFileOpen = new javax.swing.JMenuItem();
         menuFileSave = new javax.swing.JMenuItem();
         menuEdit = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
+        menuViewRawJSON = new javax.swing.JMenuItem();
 
-        jsonKeyDelete.setText("Delete key / value pairs");
+        jsonKeyDelete.setText("Delete key / value pair...");
         jsonKeyDelete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jsonKeyDeleteActionPerformed(evt);
             }
         });
-        jsonObjectModify.add(jsonKeyDelete);
+        jsonKeyValueModify.add(jsonKeyDelete);
+
+        jsonKeyCreate.setText("Create key / valur pair...");
+        jsonKeyCreate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonKeyCreateActionPerformed(evt);
+            }
+        });
+        jsonKeyValueModify.add(jsonKeyCreate);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JSONToolView pre-alpha");
@@ -334,13 +345,13 @@ public class Main extends javax.swing.JFrame {
 
         menuEdit.setText("View");
 
-        jMenuItem1.setText("View raw JSON text ...");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+        menuViewRawJSON.setText("View raw JSON text ...");
+        menuViewRawJSON.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+                menuViewRawJSONActionPerformed(evt);
             }
         });
-        menuEdit.add(jMenuItem1);
+        menuEdit.add(menuViewRawJSON);
 
         menuBar.add(menuEdit);
 
@@ -362,9 +373,11 @@ public class Main extends javax.swing.JFrame {
     final JFileChooser FILE_DIALOG;
 
     private void menuFileOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileOpenActionPerformed
-        int fileDialogReturnValue = FILE_DIALOG.showOpenDialog(this);
+        /**
+         * Loads a file into the current window.
+         */
+        int fileDialogReturnValue = FILE_DIALOG.showOpenDialog(Main.this);
 
-        // Load file.
         if (fileDialogReturnValue == JFileChooser.APPROVE_OPTION) {
             File file = FILE_DIALOG.getSelectedFile();
             loadFile(file);
@@ -372,7 +385,10 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_menuFileOpenActionPerformed
 
     private void jsonTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jsonTreeValueChanged
-        // Switched to a different JSONObject tree node.
+        /**
+         * Switched to a different JSON object node. Rebuild the key / value
+         * pairs table to show the items from the new node.
+         */
         JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
 
         if (node == null) {
@@ -397,6 +413,9 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_menuFileSaveActionPerformed
 
     private void jsonObjectTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jsonObjectTableMouseClicked
+        /**
+         * Edits a selected key / value pair.
+         */
         int targetRow = jsonObjectTable.getSelectedRow();
 
         if (evt.getClickCount() == 2
@@ -404,8 +423,6 @@ public class Main extends javax.swing.JFrame {
             if (targetRow >= 0) {
                 // Modify the selected key/value pair.
                 String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
-
-                // Get the keyvalue from the object and not parsed from the table.
                 Object object = workingJSONObject.keyValues.get(key);
 
                 // Pop-up a modal dialog box to edit the key/value.
@@ -413,21 +430,27 @@ public class Main extends javax.swing.JFrame {
                         (new JSONValueEditDialog(this, key, object))
                         .getReturnValue();
 
-                String newKey = returnValue.key;
-                Object newValue = returnValue.value;
+                if (returnValue.dialogResponse
+                        == JSONValueEditDialog.ReturnValue.SAVE) {
+                    String newKey = returnValue.key;
+                    Object newValue = returnValue.value;
 
-                /**
-                 * Remove previous key/value pair if the new one does not use
-                 * the same key.
-                 */
-                workingJSONObject.keyValues.remove(key);
+                    /**
+                     * Remove previous key/value pair if the new one does not
+                     * use the same key.
+                     */
+                    workingJSONObject.keyValues.remove(key);
 
-                updateWorkingKeyValue(newKey, newValue);
+                    updateWorkingKeyValue(newKey, newValue);
+                }
             }
         }
     }//GEN-LAST:event_jsonObjectTableMouseClicked
 
     private void jsonObjectTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jsonObjectTableMouseReleased
+        /**
+         * Opens the menu for the key / value.
+         */
         int targetRow = jsonObjectTable.rowAtPoint(evt.getPoint());
 
         // Show exactly which row we're acting on.
@@ -438,12 +461,19 @@ public class Main extends javax.swing.JFrame {
         }
 
         // Show menu for object.
-        if (evt.getButton() == MouseEvent.BUTTON3 && targetRow >= 0) {
-            jsonObjectModify.show(jsonObjectTable, evt.getX(), evt.getY());
+        if (evt.getButton() == MouseEvent.BUTTON3) {
+            // Set menu options as enabled.
+            jsonKeyDelete.setEnabled(targetRow >= 0);
+            
+            
+            jsonKeyValueModify.show(jsonObjectTable, evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_jsonObjectTableMouseReleased
 
     private void jsonKeyDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonKeyDeleteActionPerformed
+        /**
+         * Deletes the selected key / value pair from the right-click menu.
+         */
         int targetRow = jsonObjectTable.getSelectedRow();
 
         // Delete the selected key/value pair.
@@ -456,7 +486,10 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jsonKeyDeleteActionPerformed
 
     private void jsonObjectTableKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jsonObjectTableKeyPressed
-        // TODO proper implementation
+        /**
+         * Removes the selected key / value pair when the DELETE key is pressed
+         * on it.
+         */
         if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
             int targetRow = jsonObjectTable.getSelectedRow();
 
@@ -469,14 +502,37 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jsonObjectTableKeyPressed
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    private void menuViewRawJSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewRawJSONActionPerformed
+        /**
+         * Shows a dialog containing a raw text preview of the current JSON
+         * file.
+         */
         try {
             JSONRawTextDialog dialog = new JSONRawTextDialog(this,
                     exportJSONTree(jsonRoot));
             dialog.setVisible(true);
         } catch (JSONException e) {
         }
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    }//GEN-LAST:event_menuViewRawJSONActionPerformed
+
+    private void jsonKeyCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonKeyCreateActionPerformed
+        /**
+         * Add a new key / value pair.
+         */
+        String key = "<new key>";
+        Object object = null;
+
+        JSONValueEditDialog.JSONValueDialogResponse returnValue =
+                (new JSONValueEditDialog(Main.this, key, object))
+                .getReturnValue();
+
+        if (returnValue.dialogResponse == JSONValueEditDialog.ReturnValue.SAVE) {
+            String newKey = returnValue.key;
+            Object newValue = returnValue.value;
+
+            updateWorkingKeyValue(newKey, newValue);
+        }
+    }//GEN-LAST:event_jsonKeyCreateActionPerformed
 
     /**
      * @param args the command line arguments
@@ -503,11 +559,12 @@ public class Main extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jsonKeyCreate;
     private javax.swing.JMenuItem jsonKeyDelete;
+    private javax.swing.JPopupMenu jsonKeyValueModify;
     private javax.swing.JSplitPane jsonMainPane;
-    private javax.swing.JPopupMenu jsonObjectModify;
     private javax.swing.JTable jsonObjectTable;
+    private javax.swing.JPopupMenu jsonObjectTreeModify;
     private javax.swing.JScrollPane jsonTableScrollPane;
     private javax.swing.JTree jsonTree;
     private javax.swing.JScrollPane jsonTreeScrollPane;
@@ -516,5 +573,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenu menuFile;
     private javax.swing.JMenuItem menuFileOpen;
     private javax.swing.JMenuItem menuFileSave;
+    private javax.swing.JMenuItem menuViewRawJSON;
     // End of variables declaration//GEN-END:variables
 }
