@@ -31,6 +31,21 @@
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
       </Layout>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="jsonTreeNewChildNode">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Create new child node..."/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="jsonTreeRenameNode">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Rename selected node..."/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonTreeRenameNodeActionPerformed"/>
+          </Events>
+        </MenuItem>
+      </SubComponents>
     </Container>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
       <SubComponents>
@@ -143,6 +158,7 @@
                 <Property name="showsRootHandles" type="boolean" value="true"/>
               </Properties>
               <Events>
+                <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jsonTreeMouseReleased"/>
                 <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="jsonTreeValueChanged"/>
               </Events>
               <AuxValues>

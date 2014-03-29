@@ -233,6 +233,8 @@ public class Main extends javax.swing.JFrame {
         jsonKeyDelete = new javax.swing.JMenuItem();
         jsonKeyCreate = new javax.swing.JMenuItem();
         jsonObjectTreeModify = new javax.swing.JPopupMenu();
+        jsonTreeNewChildNode = new javax.swing.JMenuItem();
+        jsonTreeRenameNode = new javax.swing.JMenuItem();
         jsonMainPane = new javax.swing.JSplitPane();
         jsonTreeScrollPane = new javax.swing.JScrollPane();
         jsonTree = new javax.swing.JTree(jsonRoot);
@@ -261,6 +263,17 @@ public class Main extends javax.swing.JFrame {
         });
         jsonKeyValueModify.add(jsonKeyCreate);
 
+        jsonTreeNewChildNode.setText("Create new child node...");
+        jsonObjectTreeModify.add(jsonTreeNewChildNode);
+
+        jsonTreeRenameNode.setText("Rename selected node...");
+        jsonTreeRenameNode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonTreeRenameNodeActionPerformed(evt);
+            }
+        });
+        jsonObjectTreeModify.add(jsonTreeRenameNode);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JSONToolView pre-alpha");
 
@@ -270,6 +283,11 @@ public class Main extends javax.swing.JFrame {
         jsonTree.setTransferHandler(new JSONObjectTreeTransferHandler());
         jsonTree.setDropMode(javax.swing.DropMode.ON_OR_INSERT);
         jsonTree.setShowsRootHandles(true);
+        jsonTree.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                jsonTreeMouseReleased(evt);
+            }
+        });
         jsonTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 jsonTreeValueChanged(evt);
@@ -462,9 +480,8 @@ public class Main extends javax.swing.JFrame {
 
         // Show menu for object.
         if (evt.getButton() == MouseEvent.BUTTON3) {
-            // Set menu options as enabled.
+            // Set menu option as enabled if we have a key / value selected.
             jsonKeyDelete.setEnabled(targetRow >= 0);
-            
             
             jsonKeyValueModify.show(jsonObjectTable, evt.getX(), evt.getY());
         }
@@ -534,6 +551,23 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jsonKeyCreateActionPerformed
 
+    private void jsonTreeRenameNodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonTreeRenameNodeActionPerformed
+        String s = (String) JOptionPane.showInputDialog(this, "New node name:", "");
+        
+        if (s != null && s.length() > 0) {
+            // TODO Rename tree node.
+        }
+    }//GEN-LAST:event_jsonTreeRenameNodeActionPerformed
+
+    private void jsonTreeMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jsonTreeMouseReleased
+        /**
+         * Show right-click menu.
+         */
+        if (evt.getButton() == MouseEvent.BUTTON3) {
+            jsonObjectTreeModify.show(jsonTree, evt.getX(), evt.getY());
+        }
+    }//GEN-LAST:event_jsonTreeMouseReleased
+
     /**
      * @param args the command line arguments
      */
@@ -567,6 +601,8 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JPopupMenu jsonObjectTreeModify;
     private javax.swing.JScrollPane jsonTableScrollPane;
     private javax.swing.JTree jsonTree;
+    private javax.swing.JMenuItem jsonTreeNewChildNode;
+    private javax.swing.JMenuItem jsonTreeRenameNode;
     private javax.swing.JScrollPane jsonTreeScrollPane;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuEdit;
