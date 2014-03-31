@@ -59,8 +59,8 @@ public class Main extends javax.swing.JFrame {
             @Override
             public void approveSelection() {
                 File file = getSelectedFile();
-                if (file.exists()
-                        && this.getDialogType() == JFileChooser.SAVE_DIALOG) {
+                if (this.getDialogType() == JFileChooser.SAVE_DIALOG &&
+                        file.exists()) {
 
                     int result = JOptionPane.showConfirmDialog(this,
                             CONFIRM_MESSAGE, CONFIRM_TITLE,
@@ -80,7 +80,7 @@ public class Main extends javax.swing.JFrame {
                     }
                 }
 
-                // If not the save dialog. then assume it's been approved.
+                // If not the save dialog. then just forward the approval.
                 super.approveSelection();
             }
         };
@@ -160,7 +160,7 @@ public class Main extends javax.swing.JFrame {
      * @param key
      * @param value
      */
-    void updateWorkingKeyValue(String key, Object value) {
+    void putKeyValueAndRebuild(String key, Object value) {
         workingJSONObject.keyValues.put(key, value);
 
         // Rebuild table just for the value being changed.
@@ -272,7 +272,7 @@ public class Main extends javax.swing.JFrame {
         menuFile = new javax.swing.JMenu();
         menuFileOpen = new javax.swing.JMenuItem();
         menuFileSave = new javax.swing.JMenuItem();
-        menuEdit = new javax.swing.JMenu();
+        menuView = new javax.swing.JMenu();
         menuViewRawJSON = new javax.swing.JMenuItem();
         menuViewSelectionRawJSON = new javax.swing.JMenuItem();
 
@@ -412,7 +412,7 @@ public class Main extends javax.swing.JFrame {
 
         menuBar.add(menuFile);
 
-        menuEdit.setText("View");
+        menuView.setText("View");
 
         menuViewRawJSON.setText("View raw JSON text ...");
         menuViewRawJSON.addActionListener(new java.awt.event.ActionListener() {
@@ -420,7 +420,7 @@ public class Main extends javax.swing.JFrame {
                 menuViewRawJSONActionPerformed(evt);
             }
         });
-        menuEdit.add(menuViewRawJSON);
+        menuView.add(menuViewRawJSON);
 
         menuViewSelectionRawJSON.setText("View raw JSON text (selection)...");
         menuViewSelectionRawJSON.addActionListener(new java.awt.event.ActionListener() {
@@ -428,9 +428,9 @@ public class Main extends javax.swing.JFrame {
                 menuViewSelectionRawJSONActionPerformed(evt);
             }
         });
-        menuEdit.add(menuViewSelectionRawJSON);
+        menuView.add(menuViewSelectionRawJSON);
 
-        menuBar.add(menuEdit);
+        menuBar.add(menuView);
 
         setJMenuBar(menuBar);
 
@@ -518,7 +518,7 @@ public class Main extends javax.swing.JFrame {
                      */
                     workingJSONObject.keyValues.remove(key);
 
-                    updateWorkingKeyValue(newKey, newValue);
+                    putKeyValueAndRebuild(newKey, newValue);
                 }
             }
         }
@@ -609,9 +609,18 @@ public class Main extends javax.swing.JFrame {
             String newKey = returnValue.key;
             Object newValue = returnValue.value;
 
-            updateWorkingKeyValue(newKey, newValue);
-
-            // TODO Notify user of replaced key if necessary.
+            if (!keyExistsInNode(workingJSONObject, newKey)) {
+                putKeyValueAndRebuild(newKey, newValue);
+            } else {
+                JOptionPane.showMessageDialog(Main.this,
+                        "A key with that name already exists.",
+                        "Error creating key / value pair.",
+                        JOptionPane.ERROR_MESSAGE);
+                /**
+                 * TODO Confirm replace? Handle things properly if a tree node
+                 * is replaced.
+                 */
+            }
         }
     }//GEN-LAST:event_jsonKeyCreateActionPerformed
 
@@ -739,9 +748,8 @@ public class Main extends javax.swing.JFrame {
             if (duplicateKey != null) {
                 if (!keyExistsInNode(workingJSONObject, duplicateKey)) {
                     Object dupe = workingJSONObject.keyValues.get(key);
-                    workingJSONObject.keyValues.put(duplicateKey, dupe);
-                    
-                    buildTableElements(workingJSONObject);
+
+                    putKeyValueAndRebuild(duplicateKey, dupe);
                 } else {
                     JOptionPane.showMessageDialog(Main.this,
                             "Key already exists.",
@@ -793,10 +801,10 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuItem jsonTreeRenameNode;
     private javax.swing.JScrollPane jsonTreeScrollPane;
     private javax.swing.JMenuBar menuBar;
-    private javax.swing.JMenu menuEdit;
     private javax.swing.JMenu menuFile;
     private javax.swing.JMenuItem menuFileOpen;
     private javax.swing.JMenuItem menuFileSave;
+    private javax.swing.JMenu menuView;
     private javax.swing.JMenuItem menuViewRawJSON;
     private javax.swing.JMenuItem menuViewSelectionRawJSON;
     // End of variables declaration//GEN-END:variables

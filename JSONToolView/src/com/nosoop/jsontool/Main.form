@@ -99,7 +99,7 @@
             </MenuItem>
           </SubComponents>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="menuEdit">
+        <Menu class="javax.swing.JMenu" name="menuView">
           <Properties>
             <Property name="text" type="java.lang.String" value="View"/>
           </Properties>
