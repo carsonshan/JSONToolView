@@ -1,8 +1,9 @@
 JSONToolView
 ============
 
-Cross platform JSON viewer and editor.  
-It works okay.
+Cross platform JSON viewer and editor.  It works okay.  Just a bit basic.  Only raw array editing is supported so far.
+
+Don't use this with large files.
 
 UI based off of Windows' Registry Editor.
 
@@ -18,3 +19,5 @@ Compiling
 ---------
 
 It's a simple NetBeans project, so just open it up and build.
+
+A more recent copy of the `org.json` reference library is bundled under a different package name to avoid confusion with any existing copies you may have.
