@@ -117,6 +117,8 @@ public class JSONToolWindow extends javax.swing.JFrame {
                     jsonTree.setSelectionPath(jsonTree.getPathForRow(0));
 
                     JSONToolWindow.this.workingFile = jsonFile;
+                    jsonRoot.setName(
+                            String.format("root: %s", jsonFile.getName()));
                 } catch (JSONException | IOException e) {
                     JOptionPane.showMessageDialog(JSONToolWindow.this, e.getMessage());
                 }
