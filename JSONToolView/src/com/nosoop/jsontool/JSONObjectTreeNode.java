@@ -6,10 +6,12 @@ package com.nosoop.jsontool;
 
 import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -78,22 +80,31 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
         keyValues = new HashMap<>();
 
         // Though order doesn't matter, a sorted tree by default would be nice.
-        TreeMap<String,JSONObjectTreeNode> nodeMap =
-                new TreeMap<>();
+        // So we'll put the child nodes in a list [...]
+        ArrayList<JSONObjectTreeNode> nodeList = new ArrayList<>();
 
         for (String key : (Set<String>) object.keySet()) {
             if (object.optJSONObject(key) == null) {
                 keyValues.put(key, object.get(key));
             } else {
-                nodeMap.put(key,
+                nodeList.add(
                         new JSONObjectTreeNode(key, object.getJSONObject(key),
                         false));
             }
             // else if jsonarray?
         }
 
-        for (Map.Entry<String,JSONObjectTreeNode> node : nodeMap.entrySet()) {
-            this.add(node.getValue());
+        // [...] and sort them before adding them to the tree.
+        Collections.sort(nodeList, new Comparator<JSONObjectTreeNode>() {
+            @Override
+            public int compare(JSONObjectTreeNode t, JSONObjectTreeNode t1) {
+                // Compare by name.
+                return t.name.compareTo(t1.name);
+            }
+        });
+        
+        for (JSONObjectTreeNode node : nodeList) {
+            this.add(node);
         }
     }
 
