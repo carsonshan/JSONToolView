@@ -8,6 +8,14 @@
         <Property name="useNullLayout" type="boolean" value="true"/>
       </Layout>
       <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="jsonKeyCreate">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Create key / valur pair..."/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonKeyCreateActionPerformed"/>
+          </Events>
+        </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="jsonKeyDelete">
           <Properties>
             <Property name="text" type="java.lang.String" value="Delete key / value pair..."/>
@@ -16,12 +24,14 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonKeyDeleteActionPerformed"/>
           </Events>
         </MenuItem>
-        <MenuItem class="javax.swing.JMenuItem" name="jsonKeyCreate">
+        <Component class="javax.swing.JPopupMenu$Separator" name="jSeparator1">
+        </Component>
+        <MenuItem class="javax.swing.JMenuItem" name="jsonKeyDuplicate">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Create key / valur pair..."/>
+            <Property name="text" type="java.lang.String" value="Duplicate selected key / value pair..."/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonKeyCreateActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jsonKeyDuplicateActionPerformed"/>
           </Events>
         </MenuItem>
       </SubComponents>

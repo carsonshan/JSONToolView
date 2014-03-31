@@ -255,8 +255,10 @@ public class Main extends javax.swing.JFrame {
     private void initComponents() {
 
         jsonKeyValueModify = new javax.swing.JPopupMenu();
-        jsonKeyDelete = new javax.swing.JMenuItem();
         jsonKeyCreate = new javax.swing.JMenuItem();
+        jsonKeyDelete = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        jsonKeyDuplicate = new javax.swing.JMenuItem();
         jsonObjectTreeModify = new javax.swing.JPopupMenu();
         jsonTreeNewChildNode = new javax.swing.JMenuItem();
         jsonTreeRenameNode = new javax.swing.JMenuItem();
@@ -274,14 +276,6 @@ public class Main extends javax.swing.JFrame {
         menuViewRawJSON = new javax.swing.JMenuItem();
         menuViewSelectionRawJSON = new javax.swing.JMenuItem();
 
-        jsonKeyDelete.setText("Delete key / value pair...");
-        jsonKeyDelete.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jsonKeyDeleteActionPerformed(evt);
-            }
-        });
-        jsonKeyValueModify.add(jsonKeyDelete);
-
         jsonKeyCreate.setText("Create key / valur pair...");
         jsonKeyCreate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -289,6 +283,23 @@ public class Main extends javax.swing.JFrame {
             }
         });
         jsonKeyValueModify.add(jsonKeyCreate);
+
+        jsonKeyDelete.setText("Delete key / value pair...");
+        jsonKeyDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonKeyDeleteActionPerformed(evt);
+            }
+        });
+        jsonKeyValueModify.add(jsonKeyDelete);
+        jsonKeyValueModify.add(jSeparator1);
+
+        jsonKeyDuplicate.setText("Duplicate selected key / value pair...");
+        jsonKeyDuplicate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonKeyDuplicateActionPerformed(evt);
+            }
+        });
+        jsonKeyValueModify.add(jsonKeyDuplicate);
 
         jsonTreeNewChildNode.setText("Create new child node...");
         jsonTreeNewChildNode.addActionListener(new java.awt.event.ActionListener() {
@@ -493,7 +504,7 @@ public class Main extends javax.swing.JFrame {
 
                 // Pop-up a modal dialog box to edit the key/value.
                 JSONValueEditDialog.JSONValueDialogResponse returnValue =
-                        (new JSONValueEditDialog(this, key, object))
+                        (new JSONValueEditDialog(Main.this, key, object))
                         .getReturnValue();
 
                 if (returnValue.dialogResponse
@@ -530,6 +541,7 @@ public class Main extends javax.swing.JFrame {
         if (evt.getButton() == MouseEvent.BUTTON3) {
             // Set menu option as enabled if we have a key / value selected.
             jsonKeyDelete.setEnabled(targetRow >= 0);
+            jsonKeyDuplicate.setEnabled(targetRow >= 0);
 
             jsonKeyValueModify.show(jsonObjectTable, evt.getX(), evt.getY());
         }
@@ -598,6 +610,8 @@ public class Main extends javax.swing.JFrame {
             Object newValue = returnValue.value;
 
             updateWorkingKeyValue(newKey, newValue);
+
+            // TODO Notify user of replaced key if necessary.
         }
     }//GEN-LAST:event_jsonKeyCreateActionPerformed
 
@@ -674,13 +688,17 @@ public class Main extends javax.swing.JFrame {
         /**
          * Removes the selected node and its children.
          */
-        JSONObjectTreeNode node = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+        JSONObjectTreeNode node =
+                (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
 
         // Move up to parent path.
         jsonTree.setSelectionPath(jsonTree.getSelectionPath().getParentPath());
 
         jsonRoot.remove(node);
         ((DefaultTreeModel) jsonTree.getModel()).reload();
+
+        // Just to be sure, remove all the child nodes.
+        node.removeAllChildren();
     }//GEN-LAST:event_jsonTreeRemoveNodeActionPerformed
 
     private void menuViewSelectionRawJSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewSelectionRawJSONActionPerformed
@@ -707,6 +725,33 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_menuViewSelectionRawJSONActionPerformed
 
+    private void jsonKeyDuplicateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonKeyDuplicateActionPerformed
+        /**
+         * Duplicates the selected key / value pair from the right-click menu.
+         */
+        int targetRow = jsonObjectTable.getSelectedRow();
+
+        if (targetRow >= 0) {
+            String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+            String duplicateKey = (String) JOptionPane.showInputDialog(this,
+                    "Duplicated key name:", "");
+
+            if (duplicateKey != null) {
+                if (!keyExistsInNode(workingJSONObject, duplicateKey)) {
+                    Object dupe = workingJSONObject.keyValues.get(key);
+                    workingJSONObject.keyValues.put(duplicateKey, dupe);
+                    
+                    buildTableElements(workingJSONObject);
+                } else {
+                    JOptionPane.showMessageDialog(Main.this,
+                            "Key already exists.",
+                            "Error duplicating key.",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }//GEN-LAST:event_jsonKeyDuplicateActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -725,15 +770,18 @@ public class Main extends javax.swing.JFrame {
         /*
          * Create and display the form
          */
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new Main().setVisible(true);
             }
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem jsonKeyCreate;
     private javax.swing.JMenuItem jsonKeyDelete;
+    private javax.swing.JMenuItem jsonKeyDuplicate;
     private javax.swing.JPopupMenu jsonKeyValueModify;
     private javax.swing.JSplitPane jsonMainPane;
     private javax.swing.JTable jsonObjectTable;
