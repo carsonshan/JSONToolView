@@ -67,6 +67,8 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         initComponents();
 
         editTypeDropdown.setSelectedItem(ValueTypes.getValueType(value));
+        
+        this.getRootPane().setDefaultButton(editSaveButton);
 
         this.setVisible(true);
     }
