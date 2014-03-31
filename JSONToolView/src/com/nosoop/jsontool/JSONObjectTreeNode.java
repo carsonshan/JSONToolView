@@ -9,6 +9,7 @@ import bundled.jsontool.org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -28,11 +29,11 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
 
     /**
      * Generates a new JSONObjectTreeNode from a JSONObject.
-     * 
+     *
      * @param name Name of the node (name of the JSONObject).
      * @param object The JSONObject data for the node.
      * @param isRoot Whether or not the instance is the tree root. Probably not.
-     * @throws JSONException 
+     * @throws JSONException
      */
     private JSONObjectTreeNode(String name, JSONObject object, boolean isRoot)
             throws JSONException {
@@ -76,14 +77,23 @@ public class JSONObjectTreeNode extends DefaultMutableTreeNode {
     final void buildKeyValues(JSONObject object) throws JSONException {
         keyValues = new HashMap<>();
 
+        // Though order doesn't matter, a sorted tree by default would be nice.
+        TreeMap<String,JSONObjectTreeNode> nodeMap =
+                new TreeMap<>();
+
         for (String key : (Set<String>) object.keySet()) {
             if (object.optJSONObject(key) == null) {
                 keyValues.put(key, object.get(key));
             } else {
-                this.add(new JSONObjectTreeNode(key, object.getJSONObject(key),
+                nodeMap.put(key,
+                        new JSONObjectTreeNode(key, object.getJSONObject(key),
                         false));
             }
             // else if jsonarray?
+        }
+
+        for (Map.Entry<String,JSONObjectTreeNode> node : nodeMap.entrySet()) {
+            this.add(node.getValue());
         }
     }
 
