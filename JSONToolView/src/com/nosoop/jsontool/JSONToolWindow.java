@@ -7,6 +7,7 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONException;
 import bundled.jsontool.org.json.JSONObject;
 import bundled.jsontool.org.json.JSONTokener;
+import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -183,6 +184,10 @@ public class JSONToolWindow extends javax.swing.JFrame {
             @Override
             public void run() {
                 try {
+                    // Set waiting cursor.
+                    JSONToolWindow.this.setCursor(
+                            Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    
                     JSONObject export = exportJSONTree(jsonRoot);
 
                     try (FileOutputStream fOut = new FileOutputStream(jsonFile, false);
@@ -194,6 +199,10 @@ public class JSONToolWindow extends javax.swing.JFrame {
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } finally {
+                    // Unset waiting cursor.
+                    JSONToolWindow.this.setCursor(
+                            Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 }
             }
         });
