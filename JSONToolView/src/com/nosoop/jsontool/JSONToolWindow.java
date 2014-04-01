@@ -771,7 +771,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
         if (targetRow >= 0) {
             String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
             String duplicateKey = (String) JOptionPane.showInputDialog(this,
-                    "Duplicated key name:", "");
+                    "Duplicated key name:", key);
 
             if (duplicateKey != null) {
                 if (!keyExistsInNode(workingJSONObject, duplicateKey)) {
