@@ -218,6 +218,7 @@
           <SubComponents>
             <Component class="javax.swing.JTable" name="jsonObjectTable">
               <Properties>
+                <Property name="autoCreateRowSorter" type="boolean" value="true"/>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                   <Connection code="new javax.swing.table.DefaultTableModel(&#xa;    dataTable,&#xa;    new String [] {&#xa;        &quot;Name&quot;, &quot;Type&quot;, &quot;Value&quot;&#xa;    }&#xa;) {&#xa;    Class[] types = new Class [] {&#xa;        java.lang.String.class, java.lang.String.class, java.lang.Object.class&#xa;    };&#xa;&#xa;    public Class getColumnClass(int columnIndex) {&#xa;        return types [columnIndex];&#xa;    }&#xa;    &#xa;    @Override&#xa;    public boolean isCellEditable(int row, int column) {&#xa;       //Only the third column&#xa;       return false;&#xa;    }&#xa;}" type="code"/>
                 </Property>
