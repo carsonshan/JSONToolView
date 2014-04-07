@@ -153,7 +153,8 @@ public class JSONToolWindow extends javax.swing.JFrame {
                         textValue = "";
                     }
 
-                    jsonTable.addRow(new Object[]{keyValues.getKey(), classValue, textValue});
+                    jsonTable.addRow(new Object[]{ (String) keyValues.getKey(),
+                        classValue, textValue});
                 }
             }
         });
@@ -526,8 +527,11 @@ public class JSONToolWindow extends javax.swing.JFrame {
         if (evt.getClickCount() == 2
                 && evt.getButton() == MouseEvent.BUTTON1) {
             if (targetRow >= 0) {
+                int selectedRow = 
+                        jsonObjectTable.convertRowIndexToModel(targetRow);
+                
                 // Modify the selected key/value pair.
-                String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+                String key = (String) jsonObjectTable.getModel().getValueAt(selectedRow, 0);
                 Object object = workingJSONObject.keyValues.get(key);
 
                 // Pop-up a modal dialog box to edit the key/value.
@@ -583,7 +587,11 @@ public class JSONToolWindow extends javax.swing.JFrame {
 
         // Delete the selected key/value pair.
         if (targetRow >= 0) {
-            String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+            int selectedRow = 
+                        jsonObjectTable.convertRowIndexToModel(targetRow);
+            
+            String key = (String) 
+                    jsonObjectTable.getModel().getValueAt(selectedRow, 0);
 
             workingJSONObject.keyValues.remove(key);
             buildTableElements(workingJSONObject);
@@ -599,7 +607,11 @@ public class JSONToolWindow extends javax.swing.JFrame {
             int targetRow = jsonObjectTable.getSelectedRow();
 
             if (targetRow >= 0) {
-                String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+                int selectedRow = 
+                        jsonObjectTable.convertRowIndexToModel(targetRow);
+                
+                String key = (String) 
+                        jsonObjectTable.getModel().getValueAt(selectedRow, 0);
 
                 workingJSONObject.keyValues.remove(key);
                 buildTableElements(workingJSONObject);
@@ -743,7 +755,8 @@ public class JSONToolWindow extends javax.swing.JFrame {
          * Shows a dialog containing a raw text preview of the current JSON
          * file.
          */
-        JSONObjectTreeNode selectedNode = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
+        JSONObjectTreeNode selectedNode = (JSONObjectTreeNode)
+                jsonTree.getLastSelectedPathComponent();
 
         if (selectedNode != null) {
             try {
@@ -769,7 +782,11 @@ public class JSONToolWindow extends javax.swing.JFrame {
         int targetRow = jsonObjectTable.getSelectedRow();
 
         if (targetRow >= 0) {
-            String key = (String) jsonObjectTable.getModel().getValueAt(targetRow, 0);
+            int selectedRow = 
+                        jsonObjectTable.convertRowIndexToModel(targetRow);
+            
+            String key = (String) 
+                    jsonObjectTable.getModel().getValueAt(selectedRow, 0);
             String duplicateKey = (String) JOptionPane.showInputDialog(this,
                     "Duplicated key name:", key);
 
