@@ -18,7 +18,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -153,7 +156,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
                         textValue = "";
                     }
 
-                    jsonTable.addRow(new Object[]{ (String) keyValues.getKey(),
+                    jsonTable.addRow(new Object[]{(String) keyValues.getKey(),
                         classValue, textValue});
                 }
             }
@@ -187,7 +190,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
                     // Set waiting cursor.
                     JSONToolWindow.this.setCursor(
                             Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    
+
                     JSONObject export = exportJSONTree(jsonRoot);
 
                     try (FileOutputStream fOut = new FileOutputStream(jsonFile, false);
@@ -288,6 +291,8 @@ public class JSONToolWindow extends javax.swing.JFrame {
         menuFileOpen = new javax.swing.JMenuItem();
         menuFileSave = new javax.swing.JMenuItem();
         menuFileSaveAs = new javax.swing.JMenuItem();
+        menuEdit = new javax.swing.JMenu();
+        jsonReplaceOperation = new javax.swing.JMenuItem();
         menuView = new javax.swing.JMenu();
         menuViewRawJSON = new javax.swing.JMenuItem();
         menuViewSelectionRawJSON = new javax.swing.JMenuItem();
@@ -438,6 +443,19 @@ public class JSONToolWindow extends javax.swing.JFrame {
 
         menuBar.add(menuFile);
 
+        menuEdit.setText("Edit");
+
+        jsonReplaceOperation.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_H, java.awt.event.InputEvent.CTRL_MASK));
+        jsonReplaceOperation.setText("Replace...");
+        jsonReplaceOperation.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jsonReplaceOperationActionPerformed(evt);
+            }
+        });
+        menuEdit.add(jsonReplaceOperation);
+
+        menuBar.add(menuEdit);
+
         menuView.setText("View");
 
         menuViewRawJSON.setText("View raw JSON text ...");
@@ -528,9 +546,9 @@ public class JSONToolWindow extends javax.swing.JFrame {
         if (evt.getClickCount() == 2
                 && evt.getButton() == MouseEvent.BUTTON1) {
             if (targetRow >= 0) {
-                int selectedRow = 
+                int selectedRow =
                         jsonObjectTable.convertRowIndexToModel(targetRow);
-                
+
                 // Modify the selected key/value pair.
                 String key = (String) jsonObjectTable.getModel().getValueAt(selectedRow, 0);
                 Object object = workingJSONObject.keyValues.get(key);
@@ -588,11 +606,10 @@ public class JSONToolWindow extends javax.swing.JFrame {
 
         // Delete the selected key/value pair.
         if (targetRow >= 0) {
-            int selectedRow = 
-                        jsonObjectTable.convertRowIndexToModel(targetRow);
-            
-            String key = (String) 
-                    jsonObjectTable.getModel().getValueAt(selectedRow, 0);
+            int selectedRow =
+                    jsonObjectTable.convertRowIndexToModel(targetRow);
+
+            String key = (String) jsonObjectTable.getModel().getValueAt(selectedRow, 0);
 
             workingJSONObject.keyValues.remove(key);
             buildTableElements(workingJSONObject);
@@ -608,11 +625,10 @@ public class JSONToolWindow extends javax.swing.JFrame {
             int targetRow = jsonObjectTable.getSelectedRow();
 
             if (targetRow >= 0) {
-                int selectedRow = 
+                int selectedRow =
                         jsonObjectTable.convertRowIndexToModel(targetRow);
-                
-                String key = (String) 
-                        jsonObjectTable.getModel().getValueAt(selectedRow, 0);
+
+                String key = (String) jsonObjectTable.getModel().getValueAt(selectedRow, 0);
 
                 workingJSONObject.keyValues.remove(key);
                 buildTableElements(workingJSONObject);
@@ -756,8 +772,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
          * Shows a dialog containing a raw text preview of the current JSON
          * file.
          */
-        JSONObjectTreeNode selectedNode = (JSONObjectTreeNode)
-                jsonTree.getLastSelectedPathComponent();
+        JSONObjectTreeNode selectedNode = (JSONObjectTreeNode) jsonTree.getLastSelectedPathComponent();
 
         if (selectedNode != null) {
             try {
@@ -783,11 +798,10 @@ public class JSONToolWindow extends javax.swing.JFrame {
         int targetRow = jsonObjectTable.getSelectedRow();
 
         if (targetRow >= 0) {
-            int selectedRow = 
-                        jsonObjectTable.convertRowIndexToModel(targetRow);
-            
-            String key = (String) 
-                    jsonObjectTable.getModel().getValueAt(selectedRow, 0);
+            int selectedRow =
+                    jsonObjectTable.convertRowIndexToModel(targetRow);
+
+            String key = (String) jsonObjectTable.getModel().getValueAt(selectedRow, 0);
             String duplicateKey = (String) JOptionPane.showInputDialog(this,
                     "Duplicated key name:", key);
 
@@ -815,6 +829,51 @@ public class JSONToolWindow extends javax.swing.JFrame {
             saveFile(saveFile);
         }
     }//GEN-LAST:event_menuFileSaveAsActionPerformed
+
+    private void jsonReplaceOperationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jsonReplaceOperationActionPerformed
+        JSONKeyValueReplaceDialog dialog = new JSONKeyValueReplaceDialog(this);
+        dialog.setVisible(true);
+
+        JSONKeyValueReplaceDialog.ReturnValue value = dialog.getReturnValue();
+
+        switch (value.operation) {
+            case KEY_REPLACE:
+                // Grab existing map and make a new, replacement map.
+                Map<String, Object> kv = workingJSONObject.keyValues, 
+                        nkv = new HashMap<>();
+
+
+                for (Map.Entry<String, Object> entry : kv.entrySet()) {
+                    Matcher m = value.replacementPattern.matcher(entry.getKey());
+                    if (m.matches()) { // regex matches
+                        String newKey = m.replaceAll(value.replacementString);
+                        
+                        nkv.put(newKey,
+                                entry.getValue());
+                    } else { // put the old entry in.
+                        nkv.put(entry.getKey(), entry.getValue());
+                    }
+                }
+
+                // Clear existing map and replace with the new map.
+                kv.clear();
+                
+                for (Map.Entry<String, Object> entry : nkv.entrySet()) {
+                    if (keyExistsInNode(workingJSONObject, entry.getKey())) {
+                        // Error and stop executation.
+                        return;
+                    }
+                }
+                
+                kv.putAll(nkv);
+                
+                buildTableElements(workingJSONObject);
+                break;
+            case CANCEL:
+            default:
+                break;
+        }
+    }//GEN-LAST:event_jsonReplaceOperationActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem jsonKeyCreate;
@@ -824,6 +883,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
     private javax.swing.JSplitPane jsonMainPane;
     private javax.swing.JTable jsonObjectTable;
     private javax.swing.JPopupMenu jsonObjectTreeModify;
+    private javax.swing.JMenuItem jsonReplaceOperation;
     private javax.swing.JScrollPane jsonTableScrollPane;
     private javax.swing.JTree jsonTree;
     private javax.swing.JMenuItem jsonTreeNewChildNode;
@@ -831,6 +891,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
     private javax.swing.JMenuItem jsonTreeRenameNode;
     private javax.swing.JScrollPane jsonTreeScrollPane;
     private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu menuEdit;
     private javax.swing.JMenu menuFile;
     private javax.swing.JMenuItem menuFileOpen;
     private javax.swing.JMenuItem menuFileSave;
