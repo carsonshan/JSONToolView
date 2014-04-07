@@ -345,6 +345,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
         setTitle("JSONToolView pre-alpha");
 
         jsonMainPane.setDividerLocation(192);
+        jsonMainPane.setResizeWeight(0.25);
 
         jsonTree.setDragEnabled(true);
         jsonTree.setTransferHandler(new JSONObjectTreeTransferHandler());
