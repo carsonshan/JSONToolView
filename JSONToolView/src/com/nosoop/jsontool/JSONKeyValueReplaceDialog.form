@@ -57,7 +57,7 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="fieldKeyName" max="32767" attributes="0"/>
@@ -73,6 +73,7 @@
                               <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="fieldKeyReplace" alignment="0" max="32767" attributes="0"/>
+                          <Component id="checkRegexSearch" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -89,7 +90,9 @@
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="fieldKeyReplace" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="110" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="checkRegexSearch" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="80" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="buttonReplaceKey" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -129,6 +132,11 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonReplaceKeyActionPerformed"/>
               </Events>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="checkRegexSearch">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Regular expression search"/>
+              </Properties>
             </Component>
           </SubComponents>
         </Container>

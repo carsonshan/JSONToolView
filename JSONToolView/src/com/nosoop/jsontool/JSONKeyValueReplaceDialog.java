@@ -18,8 +18,10 @@ public class JSONKeyValueReplaceDialog
      */
     public class ReturnValue {
         Operation operation;
-        Pattern replacementPattern;
+        String replacementSearch;
         String replacementString;
+        
+        boolean isRegex;
     }
     
     public enum Operation {
@@ -62,6 +64,7 @@ public class JSONKeyValueReplaceDialog
         fieldKeyReplace = new javax.swing.JTextField();
         buttonCancel = new javax.swing.JButton();
         buttonReplaceKey = new javax.swing.JButton();
+        checkRegexSearch = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -83,6 +86,8 @@ public class JSONKeyValueReplaceDialog
             }
         });
 
+        checkRegexSearch.setText("Regular expression search");
+
         javax.swing.GroupLayout tabReplaceKeyLayout = new javax.swing.GroupLayout(tabReplaceKey);
         tabReplaceKey.setLayout(tabReplaceKeyLayout);
         tabReplaceKeyLayout.setHorizontalGroup(
@@ -100,7 +105,8 @@ public class JSONKeyValueReplaceDialog
                         .addComponent(buttonReplaceKey)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
-                    .addComponent(fieldKeyReplace))
+                    .addComponent(fieldKeyReplace)
+                    .addComponent(checkRegexSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         tabReplaceKeyLayout.setVerticalGroup(
@@ -114,7 +120,9 @@ public class JSONKeyValueReplaceDialog
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(fieldKeyReplace, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 110, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(checkRegexSearch)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 80, Short.MAX_VALUE)
                 .addGroup(tabReplaceKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonReplaceKey))
@@ -145,9 +153,9 @@ public class JSONKeyValueReplaceDialog
 
     private void buttonReplaceKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonReplaceKeyActionPerformed
         returnValue.operation = Operation.KEY_REPLACE;
-        returnValue.replacementPattern = 
-                Pattern.compile(fieldKeyName.getText());
+        returnValue.replacementSearch = fieldKeyName.getText();
         returnValue.replacementString = fieldKeyReplace.getText();
+        returnValue.isRegex = checkRegexSearch.isSelected();
         
         this.setVisible(false);
     }//GEN-LAST:event_buttonReplaceKeyActionPerformed
@@ -159,6 +167,7 @@ public class JSONKeyValueReplaceDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonReplaceKey;
+    private javax.swing.JCheckBox checkRegexSearch;
     private javax.swing.JTextField fieldKeyName;
     private javax.swing.JTextField fieldKeyReplace;
     private javax.swing.JLabel jLabel1;

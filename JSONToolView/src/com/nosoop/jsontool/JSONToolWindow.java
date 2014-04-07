@@ -842,25 +842,43 @@ public class JSONToolWindow extends javax.swing.JFrame {
                 Map<String, Object> kv = workingJSONObject.keyValues, 
                         nkv = new HashMap<>();
 
+                Pattern replacementPattern = null;
+                if (value.isRegex) {
+                    replacementPattern =
+                            Pattern.compile(value.replacementSearch);
+                }
 
                 for (Map.Entry<String, Object> entry : kv.entrySet()) {
-                    Matcher m = value.replacementPattern.matcher(entry.getKey());
-                    if (m.matches()) { // regex matches
-                        String newKey = m.replaceAll(value.replacementString);
-                        
-                        nkv.put(newKey,
-                                entry.getValue());
-                    } else { // put the old entry in.
-                        nkv.put(entry.getKey(), entry.getValue());
+                    if (value.isRegex) {
+                        assert(replacementPattern != null);
+                        Matcher m = replacementPattern.matcher(entry.getKey());
+                        if (m.matches()) { // regex matches
+                            String newKey = m.replaceAll(value.replacementString);
+
+                            nkv.put(newKey,
+                                    entry.getValue());
+                        } else { // put the old entry in.
+                            nkv.put(entry.getKey(), entry.getValue());
+                        }
+                    } else {
+                        nkv.put(entry.getKey()
+                                .replace(value.replacementSearch,
+                                value.replacementString), entry.getValue());
                     }
                 }
 
-                // Clear existing map and replace with the new map.
+                // Backup existing map before replacement.
+                Map<String,Object> bkv = new HashMap(kv);
+                
+                // Clear current map.
+                // TODO Add nameExistsInNodeAsChildNode()
                 kv.clear();
                 
                 for (Map.Entry<String, Object> entry : nkv.entrySet()) {
                     if (keyExistsInNode(workingJSONObject, entry.getKey())) {
-                        // Error and stop executation.
+                        // Show error, get all the old elements back, stop.
+                        kv.putAll(bkv);
+                        buildTableElements(workingJSONObject);
                         return;
                     }
                 }
