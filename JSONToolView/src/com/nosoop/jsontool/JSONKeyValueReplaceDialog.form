@@ -135,7 +135,7 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="checkRegexSearch">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Regular expression search"/>
+                <Property name="text" type="java.lang.String" value="Regular expression search ($1, $2, $3, ...)"/>
               </Properties>
             </Component>
           </SubComponents>

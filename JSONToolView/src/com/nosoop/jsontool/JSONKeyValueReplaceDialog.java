@@ -86,7 +86,7 @@ public class JSONKeyValueReplaceDialog
             }
         });
 
-        checkRegexSearch.setText("Regular expression search");
+        checkRegexSearch.setText("Regular expression search ($1, $2, $3, ...)");
 
         javax.swing.GroupLayout tabReplaceKeyLayout = new javax.swing.GroupLayout(tabReplaceKey);
         tabReplaceKey.setLayout(tabReplaceKeyLayout);
