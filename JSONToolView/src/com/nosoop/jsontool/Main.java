@@ -5,6 +5,7 @@
 package com.nosoop.jsontool;
 
 import java.awt.EventQueue;
+import java.io.File;
 
 /**
  *
@@ -14,7 +15,7 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         /*
          * Set the operating system look and feel
          */
@@ -32,7 +33,21 @@ public class Main {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new JSONToolWindow().setVisible(true);
+                JSONToolWindow window = new JSONToolWindow();
+
+                if (args.length > 0) {
+                    /**
+                     * TODO Parse file argument more clearly.
+                     *
+                     * Check that it can actually be a file path and isn't just
+                     * string data.
+                     */
+                    File f = new File(args[0]);
+
+                    window.loadFile(f);
+                }
+
+                window.setVisible(true);
             }
         });
     }
