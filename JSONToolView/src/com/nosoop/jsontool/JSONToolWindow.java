@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -90,7 +91,10 @@ public class JSONToolWindow extends javax.swing.JFrame {
             }
         };
 
-        // TODO add support to drag-and-drop for non-leaf tree nodes.
+        /**
+         * Non-leaf nodes can be dragged and dropped if all their children are
+         * selected.
+         */
     }
 
     /**
@@ -103,8 +107,13 @@ public class JSONToolWindow extends javax.swing.JFrame {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                try (FileInputStream fis = new FileInputStream(jsonFile)) {
-                    JSONObject jsonData = new JSONObject(new JSONTokener(fis));
+                /**
+                 * Force reads file as UTF-8. TODO Support non UTF-8 encodings?
+                 */
+                try (FileInputStream fis = new FileInputStream(jsonFile);
+                        InputStreamReader ins =
+                        new InputStreamReader(fis, "UTF-8")) {
+                    JSONObject jsonData = new JSONObject(new JSONTokener(ins));
 
                     // Remove previous JSON object tree and reload GUI.
                     jsonRoot.removeAllChildren();
@@ -193,9 +202,15 @@ public class JSONToolWindow extends javax.swing.JFrame {
 
                     JSONObject export = exportJSONTree(jsonRoot);
 
-                    try (FileOutputStream fOut = new FileOutputStream(jsonFile, false);
-                            BufferedOutputStream bOut = new BufferedOutputStream(fOut);
-                            PrintStream pOut = new PrintStream(bOut)) {
+                    /**
+                     * Forces output as UTF-8. TODO Support other encodings?
+                     */
+                    try (FileOutputStream fOut =
+                            new FileOutputStream(jsonFile, false);
+                            BufferedOutputStream bOut =
+                            new BufferedOutputStream(fOut);
+                            PrintStream pOut =
+                            new PrintStream(bOut, true, "UTF-8")) {
                         pOut.print(export.toString(4));
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -254,6 +269,17 @@ public class JSONToolWindow extends javax.swing.JFrame {
             }
         }
 
+        return keyExistsAsNode(node, inputKey);
+    }
+    
+    /**
+     * Checks whether or not a node has an existing key as a child node.
+     *
+     * @param node The JSONObjectTreeNode instance to check a key name for.
+     * @param inputKey A key to check the existence of.
+     * @return
+     */
+    boolean keyExistsAsNode(JSONObjectTreeNode node, String inputKey) {
         Enumeration<JSONObjectTreeNode> children = node.children();
         while (children.hasMoreElements()) {
             if (children.nextElement().getName().equals(inputKey)) {
@@ -839,8 +865,8 @@ public class JSONToolWindow extends javax.swing.JFrame {
         switch (value.operation) {
             case KEY_REPLACE:
                 // Grab existing map and make a new, replacement map.
-                Map<String, Object> kv = workingJSONObject.keyValues, 
-                        nkv = new HashMap<>();
+                Map<String, Object> kv = workingJSONObject.keyValues,
+                 nkv = new HashMap<>();
 
                 Pattern replacementPattern = null;
                 if (value.isRegex) {
@@ -850,7 +876,7 @@ public class JSONToolWindow extends javax.swing.JFrame {
 
                 for (Map.Entry<String, Object> entry : kv.entrySet()) {
                     if (value.isRegex) {
-                        assert(replacementPattern != null);
+                        assert (replacementPattern != null);
                         Matcher m = replacementPattern.matcher(entry.getKey());
                         if (m.matches()) { // regex matches
                             String newKey = m.replaceAll(value.replacementString);
@@ -866,25 +892,19 @@ public class JSONToolWindow extends javax.swing.JFrame {
                                 value.replacementString), entry.getValue());
                     }
                 }
-
-                // Backup existing map before replacement.
-                Map<String,Object> bkv = new HashMap(kv);
                 
-                // Clear current map.
-                // TODO Add nameExistsInNodeAsChildNode()
-                kv.clear();
-                
+                // Check if there is a child node with each key name.
                 for (Map.Entry<String, Object> entry : nkv.entrySet()) {
-                    if (keyExistsInNode(workingJSONObject, entry.getKey())) {
-                        // Show error, get all the old elements back, stop.
-                        kv.putAll(bkv);
-                        buildTableElements(workingJSONObject);
+                    if (keyExistsAsNode(workingJSONObject, entry.getKey())) {
+                        // Show error.
                         return;
                     }
                 }
-                
+
+                // Clear current map if everything works.
+                kv.clear();
                 kv.putAll(nkv);
-                
+
                 buildTableElements(workingJSONObject);
                 break;
             case CANCEL:
