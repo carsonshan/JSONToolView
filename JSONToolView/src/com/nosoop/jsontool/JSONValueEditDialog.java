@@ -7,7 +7,11 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONArray;
 import bundled.jsontool.org.json.JSONException;
 import com.nosoop.inputdialog.ModalInputDialog;
+import java.awt.EventQueue;
 import java.util.regex.Pattern;
+import javax.swing.InputVerifier;
+import javax.swing.JComponent;
+import javax.swing.UIManager;
 
 /**
  *
@@ -79,8 +83,6 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
 
         editTypeDropdown.setSelectedItem(ValueTypes.getValueType(value));
 
-        this.getRootPane().setDefaultButton(editSaveButton);
-
         this.setVisible(true);
     }
 
@@ -111,6 +113,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         editCancelButton = new javax.swing.JButton();
         editSaveButton = new javax.swing.JButton();
         editValueField = new javax.swing.JTextField();
+        editValueValidationLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Editing key " + key);
@@ -145,11 +148,16 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         });
 
         editValueField.setText(this.value != null ? this.value.toString() : "");
+        editValueField.setInputVerifier(new EditValueFieldInputVerifier());
         editValueField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 editValueFieldKeyTyped(evt);
             }
         });
+
+        editValueValidationLabel.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
+        editValueValidationLabel.setText("jLabel1");
+        editValueValidationLabel.setVisible(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -168,7 +176,8 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
                         .addComponent(editSaveButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(editCancelButton))
-                    .addComponent(editValueField))
+                    .addComponent(editValueField)
+                    .addComponent(editValueValidationLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -186,7 +195,9 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
                 .addComponent(editValueLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(editValueField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 111, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(editValueValidationLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 79, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(editCancelButton)
                     .addComponent(editSaveButton))
@@ -254,7 +265,6 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
     private void editValueFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_editValueFieldKeyTyped
         // TODO add your handling code here:
     }//GEN-LAST:event_editValueFieldKeyTyped
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton editCancelButton;
     private javax.swing.JTextField editNameField;
@@ -264,5 +274,40 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
     private javax.swing.JLabel editTypeLabel;
     private javax.swing.JTextField editValueField;
     private javax.swing.JLabel editValueLabel;
+    private javax.swing.JLabel editValueValidationLabel;
     // End of variables declaration//GEN-END:variables
+
+    class EditValueFieldInputVerifier extends InputVerifier {
+        final static String FAILED_VALIDATION_MESSAGE =
+                "Input value for key \"%s\" is not of expected value %s.";
+
+        @Override
+        public boolean verify(JComponent jc) {
+            final String inputValue = ((javax.swing.JTextField) jc).getText();
+            final ValueTypes valueType =
+                    (ValueTypes) editTypeDropdown.getSelectedItem();
+
+            final boolean verified = valueType.validateInput(inputValue);
+
+            EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    if (verified) {
+                        editValueValidationLabel.setVisible(false);
+                    } else {
+                        String key = editNameField.getText();
+                        String labelText = String.format(FAILED_VALIDATION_MESSAGE,
+                                key, valueType.toString());
+                        editValueValidationLabel.setText(labelText);
+                        editValueValidationLabel.setVisible(true);
+                    }
+
+                    System.out.println(verified);
+                }
+            });
+            
+            return verified;
+        }
+    }
+
 }
