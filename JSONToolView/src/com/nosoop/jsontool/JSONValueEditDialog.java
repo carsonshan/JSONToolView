@@ -7,6 +7,7 @@ package com.nosoop.jsontool;
 import bundled.jsontool.org.json.JSONArray;
 import bundled.jsontool.org.json.JSONException;
 import com.nosoop.inputdialog.ModalInputDialog;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -14,7 +15,17 @@ import com.nosoop.inputdialog.ModalInputDialog;
  */
 public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JSONValueDialogResponse> {
     static enum ValueTypes {
-        BOOLEAN, DOUBLE, INT, LONG, STRING, ARRAY, NULL;
+        BOOLEAN("true|false"), DOUBLE("-?\\d+(?:\\.\\d+)?"), INT("-?\\d+"),
+        LONG("-?\\d+"), STRING(".*"), ARRAY(".*"), NULL("null");
+
+        ValueTypes(String regexPattern) {
+            pattern = Pattern.compile("(?i)" + regexPattern);
+        }
+        final Pattern pattern;
+
+        public boolean validateInput(String input) {
+            return pattern.matcher(input).matches();
+        }
 
         @Override
         public String toString() {
@@ -25,7 +36,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             if (object == null) {
                 return NULL;
             }
-            
+
             switch (object.getClass().getSimpleName()) {
                 case "Integer":
                     return INT;
@@ -39,7 +50,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             return STRING;
         }
     }
-    
+
     static enum ReturnValue {
         SAVE, CANCEL;
     }
@@ -67,7 +78,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         initComponents();
 
         editTypeDropdown.setSelectedItem(ValueTypes.getValueType(value));
-        
+
         this.getRootPane().setDefaultButton(editSaveButton);
 
         this.setVisible(true);
@@ -134,6 +145,11 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
         });
 
         editValueField.setText(this.value != null ? this.value.toString() : "");
+        editValueField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                editValueFieldKeyTyped(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -220,7 +236,7 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             default:
                 throw new AssertionError("Value not one of the known typess.");
         }
-        
+
         this.dialogResponse = ReturnValue.SAVE;
 
         this.setVisible(false);
@@ -234,6 +250,10 @@ public class JSONValueEditDialog extends ModalInputDialog<JSONValueEditDialog.JS
             editValueField.setEnabled(true);
         }
     }//GEN-LAST:event_editTypeDropdownActionPerformed
+
+    private void editValueFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_editValueFieldKeyTyped
+        // TODO add your handling code here:
+    }//GEN-LAST:event_editValueFieldKeyTyped
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton editCancelButton;

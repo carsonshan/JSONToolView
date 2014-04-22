@@ -126,6 +126,9 @@
           <Connection code="this.value != null ? this.value.toString() : &quot;&quot;" type="code"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="editValueFieldKeyTyped"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>
